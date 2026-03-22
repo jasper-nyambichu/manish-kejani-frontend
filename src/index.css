@@ -1,0 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* ── Colour palette ─────────────────────────────────────────── */
+  --color-background:         hsl(30 15% 97%);
+  --color-foreground:         hsl(18 100% 5%);
+
+  --color-card:               hsl(0 0% 100%);
+  --color-card-foreground:    hsl(18 100% 5%);
+
+  --color-popover:            hsl(0 0% 100%);
+  --color-popover-foreground: hsl(18 100% 5%);
+
+  --color-primary:            hsl(24 72% 55%);
+  --color-primary-foreground: hsl(0 0% 100%);
+
+  --color-secondary:          hsl(30 65% 91%);
+  --color-secondary-foreground: hsl(18 100% 5%);
+
+  --color-muted:              hsl(30 15% 97%);
+  --color-muted-foreground:   hsl(18 30% 40%);
+
+  --color-accent:             hsl(24 72% 55%);
+  --color-accent-foreground:  hsl(0 0% 100%);
+
+  --color-destructive:        hsl(0 72% 51%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+
+  --color-success:            hsl(142 72% 29%);
+  --color-warning:            hsl(38 92% 50%);
+  --color-info:               hsl(217 91% 60%);
+
+  /* Dark rich surface (navbar top-bar, footer) */
+  --color-surface:            hsl(18 100% 9%);
+  --color-surface-foreground: hsl(30 65% 91%);
+
+  --color-border:             hsl(30 30% 88%);
+  --color-input:              hsl(30 30% 88%);
+  --color-ring:               hsl(24 72% 55%);
+
+  /* Sidebar */
+  --color-sidebar:                    hsl(18 100% 5%);
+  --color-sidebar-foreground:         hsl(30 65% 91%);
+  --color-sidebar-primary:            hsl(24 72% 55%);
+  --color-sidebar-primary-foreground: hsl(0 0% 100%);
+  --color-sidebar-accent:             hsl(18 100% 9%);
+  --color-sidebar-accent-foreground:  hsl(30 65% 91%);
+  --color-sidebar-border:             hsl(18 50% 15%);
+  --color-sidebar-ring:               hsl(24 72% 55%);
+
+  /* ── Border radius ──────────────────────────────────────────── */
+  --radius:              0.5rem;
+  --radius-card:         12px;
+  --radius-button:       8px;
+  --radius-badge:        20px;
+  --radius-input:        8px;
+
+  /* Tailwind utility names: rounded-card, rounded-button, etc. */
+  --border-radius-card:   var(--radius-card);
+  --border-radius-button: var(--radius-button);
+  --border-radius-badge:  var(--radius-badge);
+  --border-radius-input:  var(--radius-input);
+
+  /* ── Typography ─────────────────────────────────────────────── */
+  --font-display: 'Playfair Display', serif;
+  --font-body:    'DM Sans', sans-serif;
+
+  /* Tailwind utility names: font-display, font-body */
+  --font-family-display: var(--font-display);
+  --font-family-body:    var(--font-body);
+}
+
+/* ── Dark mode overrides ────────────────────────────────────── */
+.dark {
+  --color-background:         hsl(18 100% 5%);
+  --color-foreground:         hsl(30 15% 97%);
+  --color-card:               hsl(18 100% 9%);
+  --color-card-foreground:    hsl(30 15% 97%);
+  --color-popover:            hsl(18 100% 9%);
+  --color-popover-foreground: hsl(30 15% 97%);
+  --color-primary:            hsl(24 72% 55%);
+  --color-primary-foreground: hsl(0 0% 100%);
+  --color-secondary:          hsl(18 50% 15%);
+  --color-secondary-foreground: hsl(30 15% 97%);
+  --color-muted:              hsl(18 50% 15%);
+  --color-muted-foreground:   hsl(30 20% 60%);
+  --color-accent:             hsl(24 72% 55%);
+  --color-accent-foreground:  hsl(0 0% 100%);
+  --color-destructive:        hsl(0 62.8% 30.6%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  --color-border:             hsl(18 50% 15%);
+  --color-input:              hsl(18 50% 15%);
+  --color-ring:               hsl(24 72% 55%);
+  --color-sidebar:                    hsl(18 100% 3%);
+  --color-sidebar-foreground:         hsl(30 15% 97%);
+  --color-sidebar-primary:            hsl(24 72% 55%);
+  --color-sidebar-primary-foreground: hsl(0 0% 100%);
+  --color-sidebar-accent:             hsl(18 100% 9%);
+  --color-sidebar-accent-foreground:  hsl(30 15% 97%);
+  --color-sidebar-border:             hsl(18 50% 15%);
+  --color-sidebar-ring:               hsl(24 72% 55%);
+}
+
+/* ── Base resets ────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after {
+    border-color: var(--color-border);
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+  }
+}
+
+/* ── Reusable component helpers ─────────────────────────────── */
+@layer components {
+  .section-padding {
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+  }
+
+  .badge-pill {
+    border-radius: var(--radius-badge);
+  }
+
+  /* Hide scrollbar cross-browser */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
