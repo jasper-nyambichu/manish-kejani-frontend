@@ -26,8 +26,14 @@ const samplePromotions: Promotion[] = [
 ];
 
 const Promotions = () => {
-  const [promotions] = useState(samplePromotions);
+  const [promotions, setPromotions] = useState(samplePromotions);
   const [showAdd, setShowAdd] = useState(false);
+
+  const toggleActive = (id: string) => {
+    setPromotions((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, isActive: !p.isActive } : p))
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -87,7 +93,23 @@ const Promotions = () => {
                   <span className="font-semibold text-primary">{promo.discountPercent}% off</span>
                 </div>
               </div>
+
               <div className="flex items-center gap-1">
+                {/* Active / Inactive toggle */}
+                <button
+                  onClick={() => toggleActive(promo.id)}
+                  className={`w-8 h-8 rounded-button flex items-center justify-center transition-colors ${
+                    promo.isActive
+                      ? "text-success hover:bg-success/10"
+                      : "text-muted-foreground hover:bg-secondary"
+                  }`}
+                  title={promo.isActive ? "Deactivate promotion" : "Activate promotion"}
+                >
+                  {promo.isActive
+                    ? <ToggleRight className="w-5 h-5" />
+                    : <ToggleLeft className="w-5 h-5" />
+                  }
+                </button>
                 <button className="w-8 h-8 rounded-button flex items-center justify-center text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors">
                   <Pencil className="w-4 h-4" />
                 </button>

@@ -12,6 +12,7 @@ const CategoryPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const [sortBy, setSortBy] = useState<SortOption>("popular");
   const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 15000]);
   const [stockFilter, setStockFilter] = useState<string>("all");
 
@@ -128,6 +129,27 @@ const CategoryPage = () => {
                     <SlidersHorizontal className="w-4 h-4" />
                     Filters
                   </button>
+                  {/* View mode toggle */}
+                  <div className="hidden sm:flex items-center border border-border rounded-button overflow-hidden">
+                    <button
+                      onClick={() => setViewMode("grid")}
+                      className={`w-8 h-8 flex items-center justify-center transition-colors ${
+                        viewMode === "grid" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary"
+                      }`}
+                      title="Grid view"
+                    >
+                      <Grid3X3 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setViewMode("list")}
+                      className={`w-8 h-8 flex items-center justify-center transition-colors ${
+                        viewMode === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary"
+                      }`}
+                      title="List view"
+                    >
+                      <LayoutList className="w-4 h-4" />
+                    </button>
+                  </div>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as SortOption)}
@@ -166,13 +188,28 @@ const CategoryPage = () => {
                 </div>
               )}
 
-              {/* Products grid */}
+              {/* Products grid / list */}
               {filtered.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {filtered.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                  ))}
-                </div>
+                viewMode === "grid" ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {filtered.map((product) => (
+                      <ProductCard key={product.id} product={product} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {filtered.map((product) => (
+                      <div key={product.id} className="bg-card rounded-card border border-border p-4 flex items-center gap-4">
+                        <img src={product.image} alt={product.name} className="w-16 h-16 rounded-button object-cover bg-secondary flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-body font-medium text-foreground truncate">{product.name}</p>
+                          <p className="text-xs font-body text-muted-foreground">{product.category}</p>
+                        </div>
+                        <span className="font-body font-bold text-foreground whitespace-nowrap">KSh {product.price.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                )
               ) : (
                 <div className="bg-card rounded-card border border-border p-12 text-center">
                   <p className="text-muted-foreground">No products found matching your filters.</p>

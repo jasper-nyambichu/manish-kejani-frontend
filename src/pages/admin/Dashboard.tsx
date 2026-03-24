@@ -7,6 +7,10 @@ const stats = [
   { label: "Categories", value: categories.length, icon: FolderTree, color: "bg-info/10 text-info", link: "/admin/categories" },
   { label: "Flash Deals", value: products.filter((p) => p.isFlashDeal).length, icon: TrendingUp, color: "bg-warning/10 text-warning", link: "/admin/promotions" },
   { label: "Low Stock", value: products.filter((p) => p.stock === "low-stock").length, icon: ShoppingBag, color: "bg-destructive/10 text-destructive", link: "/admin/products" },
+  { label: "Total Views", value: "1,240", icon: Eye, color: "bg-success/10 text-success", link: "/admin/products" },
+  { label: "WhatsApp Orders", value: "38", icon: MessageCircle, color: "bg-primary/10 text-primary", link: "/admin/promotions" },
+  { label: "Avg. Rating", value: (products.reduce((sum, p) => sum + p.rating, 0) / products.length).toFixed(1), icon: Star, color: "bg-warning/10 text-warning", link: "/admin/products" },
+  { label: "Customers", value: "120+", icon: Users, color: "bg-info/10 text-info", link: "/admin/customers" },
 ];
 
 const recentProducts = products.slice(0, 5);
@@ -14,8 +18,8 @@ const recentProducts = products.slice(0, 5);
 const Dashboard = () => {
   return (
     <div className="space-y-6">
-      {/* Stats grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats grid — now 8 cards across 2 rows */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (
           <Link
             key={stat.label}
@@ -99,6 +103,15 @@ const Dashboard = () => {
                 <img src={product.image} alt={product.name} className="w-10 h-10 rounded-button object-cover bg-secondary" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-body font-medium text-foreground truncate">{product.name}</p>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-3 h-3 ${i < Math.floor(product.rating) ? "text-warning fill-warning" : "text-border"}`}
+                      />
+                    ))}
+                    <span className="text-xs font-body text-muted-foreground ml-1">{product.rating}</span>
+                  </div>
                 </div>
                 <span
                   className={`text-xs font-body font-semibold px-2 py-0.5 rounded-badge ${
