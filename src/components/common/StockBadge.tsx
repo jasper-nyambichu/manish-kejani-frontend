@@ -1,3 +1,4 @@
+// src/components/common/StockBadge.tsx
 type StockStatus = "in-stock" | "low-stock" | "out-of-stock";
 
 const styles: Record<StockStatus, string> = {

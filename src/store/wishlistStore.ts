@@ -1,40 +1,62 @@
-import { useState, useCallback, useEffect } from "react";
+// src/store/wishlistStore.ts
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-const WISHLIST_KEY = "mk_wishlist";
-
-function getStoredWishlist(): string[] {
-  try {
-    return JSON.parse(localStorage.getItem(WISHLIST_KEY) || "[]");
-  } catch {
-    return [];
-  }
+interface WishlistItem {
+  id:            string;
+  name:          string;
+  price:         number;
+  originalPrice?: number;
+  image:         string;
+  category:      string;
+  rating:        number;
+  reviews:       number;
+  stock:         string;
+  discount?:     number;
 }
 
-export function useWishlistStore() {
-  const [items, setItems] = useState<string[]>(getStoredWishlist);
-
-  useEffect(() => {
-    localStorage.setItem(WISHLIST_KEY, JSON.stringify(items));
-  }, [items]);
-
-  const add = useCallback((id: string) => {
-    setItems((prev) => (prev.includes(id) ? prev : [...prev, id]));
-  }, []);
-
-  const remove = useCallback((id: string) => {
-    setItems((prev) => prev.filter((i) => i !== id));
-  }, []);
-
-  const toggle = useCallback((id: string) => {
-    setItems((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-  }, []);
-
-  const isWishlisted = useCallback(
-    (id: string) => items.includes(id),
-    [items]
-  );
-
-  return { items, add, remove, toggle, isWishlisted, count: items.length };
+interface WishlistStore {
+  items:        WishlistItem[];
+  addItem:      (item: WishlistItem) => void;
+  removeItem:   (id: string) => void;
+  toggleItem:   (item: WishlistItem) => void;
+  isInWishlist: (id: string) => boolean;
+  clearWishlist: () => void;
 }
+
+export const useWishlistStore = create<WishlistStore>()(
+  persist(
+    (set, get) => ({
+      items: [],
+
+      addItem: (item) => {
+        set((state) => {
+          if (state.items.find((i) => i.id === item.id)) return state;
+          return { items: [...state.items, item] };
+        });
+      },
+
+      removeItem: (id) => {
+        set((state) => ({ items: state.items.filter((i) => i.id !== id) }));
+      },
+
+      toggleItem: (item) => {
+        const { isInWishlist, addItem, removeItem } = get();
+        if (isInWishlist(item.id)) {
+          removeItem(item.id);
+        } else {
+          addItem(item);
+        }
+      },
+
+      isInWishlist: (id) => {
+        return get().items.some((i) => i.id === id);
+      },
+
+      clearWishlist: () => set({ items: [] }),
+    }),
+    {
+      name: 'mk_wishlist',
+    }
+  )
+);
