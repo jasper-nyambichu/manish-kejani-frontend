@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Search, User, Heart, Menu, X, Phone, MapPin, MessageCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { categories } from "@/data/products";
-import logo from "@/assets/logo.svg";
+import logo from "@/assets/logo.png";
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

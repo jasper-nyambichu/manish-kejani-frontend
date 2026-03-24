@@ -1,7 +1,7 @@
 import { MapPin, Phone, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { categories } from "@/data/products";
-import logo from "@/assets/logo.svg";
+import logo from "@/assets/logo.png";
 
 const Footer = () => {
   return (
