@@ -50,8 +50,7 @@ const ProductDetail = () => {
     </div>
   );
 
-  const productId  = product.id ?? product._id;
-  const images     = product.images?.length > 0 ? product.images.map(img => img.url) : [];
+  const images     = product.images?.length > 0 ? product.images.map((img: { url: string }) => img.url) : [];
   const categoryName = typeof product.category === 'object' ? product.category.name : product.category;
   const categorySlug = typeof product.category === 'object' ? product.category.slug : (product.category as string)?.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-');
   const status     = product.status ?? 'in_stock';

@@ -25,7 +25,7 @@ const VerifyEmailPage = () => {
         setStatus('success');
         setMessage('Your email has been verified successfully! You can now log in.');
       })
-      .catch((err) => {
+      .catch((err: any) => {
         setStatus('error');
         setMessage(err?.response?.data?.message ?? 'Verification failed. The link may have expired.');
       });

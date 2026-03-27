@@ -1,6 +1,7 @@
 // src/hooks/useAdminProducts.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import adminApi from '@/lib/adminApi';
+import type { AxiosProgressEvent } from 'axios';
 
 const fetchAdminProducts = async (params: Record<string, string> = {}) => {
   const query = new URLSearchParams(params).toString();
@@ -45,7 +46,7 @@ export const useCreateProduct = () => {
   return useMutation({
     mutationFn: async (formData: FormData) => {
       const { data } = await adminApi.post('/api/admin/products', formData, {
-        onUploadProgress: (e) => {
+        onUploadProgress: (e: AxiosProgressEvent) => {
           const pct = e.total ? Math.round((e.loaded * 100) / e.total) : 0;
           console.debug(`Upload progress: ${pct}%`);
         },
@@ -65,14 +66,14 @@ export const useUpdateProduct = () => {
   return useMutation({
     mutationFn: async ({ id, formData }: { id: string; formData: FormData }) => {
       const { data } = await adminApi.put(`/api/admin/products/${id}`, formData, {
-        onUploadProgress: (e) => {
+        onUploadProgress: (e: AxiosProgressEvent) => {
           const pct = e.total ? Math.round((e.loaded * 100) / e.total) : 0;
           console.debug(`Upload progress: ${pct}%`);
         },
       });
       return data;
     },
-    onSuccess: (_data, { id }) => {
+    onSuccess: (_data: unknown, { id }: { id: string; formData: FormData }) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'products'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['product', id] });

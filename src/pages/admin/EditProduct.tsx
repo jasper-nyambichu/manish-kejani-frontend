@@ -39,7 +39,7 @@ const EditProduct = () => {
     if (!id) return;
     setIsLoading(true);
     adminApi.get(`/api/admin/products/${id}`)
-      .then(({ data }) => {
+      .then(({ data }: { data: { data: any } }) => {
         const p = data.data;
         setForm({
           name:          p.name ?? '',

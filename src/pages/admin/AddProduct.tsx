@@ -28,7 +28,6 @@ const AddProduct = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previews, setPreviews]           = useState<string[]>([]);
   const [uploadMode, setUploadMode]       = useState<'url' | 'file'>('file');
-  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -99,7 +98,6 @@ const AddProduct = () => {
         navigate('/admin/products');
       },
       onError: (err: any) => {
-        setUploadProgress(0);
         toast.error(err?.response?.data?.message ?? 'Failed to create product');
       },
     });
