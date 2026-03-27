@@ -1,7 +1,7 @@
 // src/hooks/useProducts.ts
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
-import type { Product } from '@/data/products';
+import type { Product } from '@/types/product.types';
 
 interface ProductsResponse {
   products:   Product[];
@@ -23,7 +23,7 @@ interface ProductFilters {
   status?:      string;
   featured?:    boolean;
   isFlashDeal?: boolean;
-  isNew?:       boolean;
+  isNewArrival?: boolean;
 }
 
 const fetchProducts = async (filters: ProductFilters = {}): Promise<ProductsResponse> => {
@@ -89,7 +89,7 @@ export const useFlashDeals = (limit = 6) => {
 export const useNewArrivals = (limit = 8) => {
   return useQuery({
     queryKey:  ['products', 'new-arrivals'],
-    queryFn:   () => fetchProducts({ isNew: true, limit }),
+    queryFn:   () => fetchProducts({ isNewArrival: true, limit }),
     staleTime: 2 * 60 * 1000,
   });
 };

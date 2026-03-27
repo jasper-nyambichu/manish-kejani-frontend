@@ -1,15 +1,32 @@
-import { Link } from "react-router-dom";
-import { categories } from "@/data/products";
-import { motion } from "framer-motion";
+// src/components/sections/CategoryStrip.tsx
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useCategories } from '@/hooks/useCategories';
 
 const CategoryStrip = () => {
+  const { data: categories = [], isLoading } = useCategories();
+
+  if (isLoading) {
+    return (
+      <section className="py-6 bg-card border-b border-border">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="min-w-[80px] h-20 bg-secondary rounded-card animate-pulse flex-shrink-0" />
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-6 bg-card border-b border-border">
       <div className="container mx-auto px-4">
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          {categories.map((cat, i) => (
+          {categories.map((cat: any, i: number) => (
             <motion.div
-              key={cat.id}
+              key={cat._id ?? cat.id}
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}

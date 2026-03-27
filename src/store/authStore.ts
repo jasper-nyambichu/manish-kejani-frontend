@@ -1,9 +1,11 @@
 // src/store/authStore.ts
 import { useState, useCallback } from 'react';
+import { toast } from 'sonner';
 import adminApi from '@/lib/adminApi';
 
-const TOKENS_KEY = 'mk_admin_tokens';
-const AUTH_KEY   = 'mk_admin_auth';
+const TOKENS_KEY    = 'mk_admin_tokens';
+const AUTH_KEY      = 'mk_admin_auth';
+const ADMIN_USER_KEY = 'mk_admin_user';
 
 interface AdminTokens {
   accessToken:  string;
@@ -28,7 +30,7 @@ export function useAdminAuth() {
 
   const [admin, setAdmin] = useState<AdminUser | null>(() => {
     try {
-      const raw = sessionStorage.getItem('mk_admin_user');
+      const raw = sessionStorage.getItem(ADMIN_USER_KEY);
       return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
@@ -44,14 +46,18 @@ export function useAdminAuth() {
         refreshToken: data.data.refreshToken,
       };
 
-      sessionStorage.setItem(TOKENS_KEY, JSON.stringify(tokens));
-      sessionStorage.setItem(AUTH_KEY,   'true');
-      sessionStorage.setItem('mk_admin_user', JSON.stringify(data.data.admin));
+      sessionStorage.setItem(TOKENS_KEY,     JSON.stringify(tokens));
+      sessionStorage.setItem(AUTH_KEY,        'true');
+      sessionStorage.setItem(ADMIN_USER_KEY,  JSON.stringify(data.data.admin));
 
       setAdmin(data.data.admin);
       setIsAuthenticated(true);
+
+      toast.success(`Welcome back, ${data.data.admin.username}`);
       return true;
-    } catch {
+    } catch (err: any) {
+      const message = err?.response?.data?.message ?? 'Login failed. Please try again.';
+      toast.error(message);
       return false;
     }
   }, []);
@@ -60,14 +66,17 @@ export function useAdminAuth() {
     try {
       await adminApi.post('/api/admin/auth/logout');
     } catch {
-      // proceed with local logout even if server call fails
+      // proceed regardless
     }
 
     sessionStorage.removeItem(TOKENS_KEY);
     sessionStorage.removeItem(AUTH_KEY);
-    sessionStorage.removeItem('mk_admin_user');
+    sessionStorage.removeItem(ADMIN_USER_KEY);
+
     setIsAuthenticated(false);
     setAdmin(null);
+
+    toast.success('Logged out successfully');
   }, []);
 
   return { isAuthenticated, admin, login, logout };

@@ -2,7 +2,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAdminAuth } from "@/store/authStore";
 
@@ -13,6 +12,7 @@ import CategoryPage from "./pages/public/CategoryPage";
 import SearchPage from "./pages/public/SearchPage";
 import WishlistPage from "./pages/public/WishlistPage";
 import LoginPage from "./pages/public/LoginPage";
+import VerifyEmailPage from "./pages/public/VerifyEmailPage";
 import NotFound from "./pages/public/NotFound";
 
 // Admin pages
@@ -37,8 +37,7 @@ const AdminGuard = ({ children }: { children: React.ReactNode }) => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
+      <Sonner richColors position="top-right" />
       <BrowserRouter>
         <Routes>
           {/* Public routes */}
@@ -48,6 +47,7 @@ const App = () => (
           <Route path="/search" element={<SearchPage />} />
           <Route path="/wishlist" element={<WishlistPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
 
           {/* Admin routes */}
           <Route path="/admin/login" element={<AdminLogin />} />

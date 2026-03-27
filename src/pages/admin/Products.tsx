@@ -60,7 +60,7 @@ const Products = () => {
         >
           <option value="all">All Categories</option>
           {categories.map((cat: any) => (
-            <option key={cat.id} value={cat.id}>{cat.name}</option>
+            <option key={cat._id ?? cat.id} value={cat._id ?? cat.id}>{cat.name}</option>
           ))}
         </select>
       </div>
@@ -100,12 +100,14 @@ const Products = () => {
                   </td>
                 </tr>
               ) : (
-                products.map((product: any) => (
-                  <tr key={product.id} className="hover:bg-secondary/30 transition-colors">
+                products.map((product: any) => {
+                  const pid = product._id ?? product.id;
+                  return (
+                  <tr key={pid} className="hover:bg-secondary/30 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <img
-                          src={product.image ?? product.images?.[0]?.url ?? ''}
+                          src={product.images?.[0]?.url ?? product.image ?? ''}
                           alt={product.name}
                           className="w-10 h-10 rounded-button object-cover bg-secondary flex-shrink-0"
                         />
@@ -143,21 +145,21 @@ const Products = () => {
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
                         <Link
-                          to={`/product/${product.id}`}
+                          to={`/product/${pid}`}
                           className="w-8 h-8 rounded-button flex items-center justify-center text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
                           title="View"
                         >
                           <Eye className="w-4 h-4" />
                         </Link>
                         <Link
-                          to={`/admin/products/edit/${product.id}`}
+                          to={`/admin/products/edit/${pid}`}
                           className="w-8 h-8 rounded-button flex items-center justify-center text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
                           title="Edit"
                         >
                           <Pencil className="w-4 h-4" />
                         </Link>
                         <button
-                          onClick={() => handleDelete(product.id, product.name)}
+                          onClick={() => handleDelete(pid, product.name)}
                           disabled={deleteProduct.isPending}
                           className="w-8 h-8 rounded-button flex items-center justify-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors disabled:opacity-50"
                           title="Delete"
@@ -167,7 +169,8 @@ const Products = () => {
                       </div>
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>

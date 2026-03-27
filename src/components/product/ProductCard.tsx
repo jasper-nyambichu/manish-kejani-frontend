@@ -1,31 +1,48 @@
-import { type Product } from "@/data/products";
-import { Heart, Star, MessageCircle } from "lucide-react";
-import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+// src/components/product/ProductCard.tsx
+import { Heart, Star, MessageCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import type { Product } from '@/types/product.types';
 
 interface ProductCardProps {
   product: Product;
 }
 
-const StockBadge = ({ stock }: { stock: Product["stock"] }) => {
-  const styles = {
-    "in-stock": "bg-success/10 text-success",
-    "low-stock": "bg-warning/10 text-warning",
-    "out-of-stock": "bg-destructive/10 text-destructive",
-  };
-  const labels = {
-    "in-stock": "In Stock",
-    "low-stock": "Low Stock",
-    "out-of-stock": "Out of Stock",
-  };
-  return (
-    <span className={`text-[10px] font-body font-semibold px-2 py-0.5 rounded-badge ${styles[stock]}`}>
-      {labels[stock]}
-    </span>
-  );
+const stockStyles: Record<string, string> = {
+  in_stock:     'bg-success/10 text-success',
+  low_stock:    'bg-warning/10 text-warning',
+  out_of_stock: 'bg-destructive/10 text-destructive',
+  coming_soon:  'bg-info/10 text-info',
+};
+
+const stockLabels: Record<string, string> = {
+  in_stock:     'In Stock',
+  low_stock:    'Low Stock',
+  out_of_stock: 'Out of Stock',
+  coming_soon:  'Coming Soon',
 };
 
 const ProductCard = ({ product }: ProductCardProps) => {
+  // Normalise id — backend returns both _id and id (virtual)
+  const productId = product.id ?? product._id;
+
+  // Normalise image — backend returns images[] array
+  const imageUrl = product.images?.[0]?.url ?? (product as any).image ?? '';
+
+  // Normalise category name
+  const categoryName = typeof product.category === 'object'
+    ? product.category.name
+    : product.category;
+
+  // Normalise status
+  const status = product.status ?? (product as any).stock ?? 'in_stock';
+
+  // Normalise discount
+  const discount = product.discountPercent ?? (product as any).discount;
+
+  // Normalise isNew
+  const isNewArrival = product.isNewArrival ?? (product as any).isNew;
+
   return (
     <motion.div
       whileHover={{ y: -4 }}
@@ -33,14 +50,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
       className="bg-card rounded-card border border-border overflow-hidden group relative"
     >
       {/* Discount badge */}
-      {product.discount && (
+      {discount > 0 && (
         <div className="absolute top-2 left-2 z-10 bg-primary text-primary-foreground text-xs font-body font-bold px-2 py-0.5 rounded-badge">
-          -{product.discount}%
+          -{discount}%
         </div>
       )}
 
       {/* New badge */}
-      {product.isNew && !product.discount && (
+      {isNewArrival && !discount && (
         <div className="absolute top-2 left-2 z-10 bg-info text-primary-foreground text-xs font-body font-bold px-2 py-0.5 rounded-badge">
           NEW
         </div>
@@ -51,22 +68,29 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <Heart className="w-4 h-4" />
       </button>
 
-      {/* Image - clickable link to PDP */}
-      <Link to={`/product/${product.id}`}>
+      {/* Image */}
+      <Link to={`/product/${productId}`}>
         <div className="aspect-square overflow-hidden bg-secondary">
-          <img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            loading="lazy"
-          />
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={product.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs font-body">
+              No image
+            </div>
+          )}
         </div>
       </Link>
 
       {/* Info */}
       <div className="p-3">
-        <p className="text-xs font-body text-muted-foreground mb-1">{product.category}</p>
-        <Link to={`/product/${product.id}`}>
+        <p className="text-xs font-body text-muted-foreground mb-1">{categoryName}</p>
+
+        <Link to={`/product/${productId}`}>
           <h3 className="text-sm font-body font-medium text-foreground line-clamp-2 leading-tight mb-2 min-h-[2.5rem] hover:text-primary transition-colors">
             {product.name}
           </h3>
@@ -78,7 +102,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
             {Array.from({ length: 5 }).map((_, i) => (
               <Star
                 key={i}
-                className={`w-3 h-3 ${i < Math.floor(product.rating) ? "text-warning fill-warning" : "text-border"}`}
+                className={`w-3 h-3 ${i < Math.floor(product.rating) ? 'text-warning fill-warning' : 'text-border'}`}
               />
             ))}
           </div>
@@ -99,7 +123,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
         {/* Stock + WhatsApp */}
         <div className="flex items-center justify-between">
-          <StockBadge stock={product.stock} />
+          <span className={`text-[10px] font-body font-semibold px-2 py-0.5 rounded-badge ${stockStyles[status] ?? 'bg-secondary text-muted-foreground'}`}>
+            {stockLabels[status] ?? status}
+          </span>
           <a
             href={`https://wa.me/254719769263?text=Hi, I'd like to order: ${encodeURIComponent(product.name)} (KSh ${product.price})`}
             target="_blank"
