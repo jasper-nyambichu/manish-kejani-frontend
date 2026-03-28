@@ -13,6 +13,8 @@ import SearchPage from "./pages/public/SearchPage";
 import WishlistPage from "./pages/public/WishlistPage";
 import LoginPage from "./pages/public/LoginPage";
 import VerifyEmailPage from "./pages/public/VerifyEmailPage";
+import GoogleAuthSuccess from "./pages/public/GoogleAuthSuccess";
+import ProfilePage from "./pages/public/ProfilePage";
 import NotFound from "./pages/public/NotFound";
 
 // Admin pages
@@ -48,6 +50,8 @@ const App = () => (
           <Route path="/wishlist" element={<WishlistPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
+          <Route path="/profile" element={<ProfilePage />} />
 
           {/* Admin routes */}
           <Route path="/admin/login" element={<AdminLogin />} />

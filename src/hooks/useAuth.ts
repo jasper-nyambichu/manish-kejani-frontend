@@ -15,22 +15,34 @@ interface LoginData {
   password: string;
 }
 
-const USER_KEY = 'mk_user';
+const USER_KEY   = 'mk_user';
+const TOKENS_KEY = 'mk_user_tokens';
+
+const getStoredUser = () => {
+  try {
+    const raw = localStorage.getItem(USER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
 
 export const useAuth = () => {
-  const [user, setUser] = useState(() => {
-    try {
-      const raw = localStorage.getItem(USER_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [user, setUser] = useState(getStoredUser);
+
+  const saveSession = (userData: any, accessToken: string, refreshToken: string) => {
+    localStorage.setItem(USER_KEY,   JSON.stringify(userData));
+    localStorage.setItem(TOKENS_KEY, JSON.stringify({ accessToken, refreshToken }));
+    setUser(userData);
+  };
 
   const registerMutation = useMutation({
     mutationFn: async (payload: RegisterData) => {
       const { data } = await api.post('/api/v1/auth/register', payload);
       return data;
+    },
+    onSuccess: (data) => {
+      saveSession(data.data.user, data.data.accessToken, data.data.refreshToken);
     },
   });
 
@@ -40,23 +52,14 @@ export const useAuth = () => {
       return data;
     },
     onSuccess: (data) => {
-      localStorage.setItem(USER_KEY, JSON.stringify(data.data.user));
-      localStorage.setItem('mk_user_tokens', JSON.stringify({
-        accessToken:  data.data.accessToken,
-        refreshToken: data.data.refreshToken,
-      }));
-      setUser(data.data.user);
+      saveSession(data.data.user, data.data.accessToken, data.data.refreshToken);
     },
   });
 
   const logout = useCallback(async () => {
-    try {
-      await api.post('/api/v1/auth/logout');
-    } catch {
-      // proceed anyway
-    }
+    try { await api.post('/api/v1/auth/logout'); } catch { /* proceed */ }
     localStorage.removeItem(USER_KEY);
-    localStorage.removeItem('mk_user_tokens');
+    localStorage.removeItem(TOKENS_KEY);
     setUser(null);
   }, []);
 
@@ -76,27 +79,32 @@ export const useAuth = () => {
 
   const resetPasswordMutation = useMutation({
     mutationFn: async ({ email, resetSessionToken, newPassword }: {
-      email:              string;
-      resetSessionToken:  string;
-      newPassword:        string;
+      email: string; resetSessionToken: string; newPassword: string;
     }) => {
-      const { data } = await api.post('/api/v1/auth/reset-password', {
-        email,
-        resetSessionToken,
-        newPassword,
-      });
+      const { data } = await api.post('/api/v1/auth/reset-password', { email, resetSessionToken, newPassword });
+      return data;
+    },
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: async ({ currentPassword, newPassword }: { currentPassword: string; newPassword: string }) => {
+      const { data } = await api.post('/api/v1/auth/change-password', { currentPassword, newPassword });
       return data;
     },
   });
 
   return {
     user,
-    isAuthenticated:       !!user,
-    register:              registerMutation,
-    login:                 loginMutation,
+    setUser,
+    saveSession,
+    isAuthenticated:   !!user,
+    isGoogleUser:      user?.authProvider === 'google',
+    register:          registerMutation,
+    login:             loginMutation,
     logout,
-    forgotPassword:        forgotPasswordMutation,
-    verifyResetCode:       verifyResetCodeMutation,
-    resetPassword:         resetPasswordMutation,
+    forgotPassword:    forgotPasswordMutation,
+    verifyResetCode:   verifyResetCodeMutation,
+    resetPassword:     resetPasswordMutation,
+    changePassword:    changePasswordMutation,
   };
 };

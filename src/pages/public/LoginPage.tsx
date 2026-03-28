@@ -9,6 +9,31 @@ import { User, Mail, Lock, Eye, EyeOff, Phone, ChevronRight, ArrowLeft } from 'l
 
 type View = 'login' | 'register' | 'forgot' | 'verify-code' | 'reset-password' | 'check-email';
 
+const GOOGLE_AUTH_URL = `${import.meta.env.VITE_API_URL ?? 'http://localhost:5000'}/api/v1/auth/google`;
+
+const GoogleButton = () => (
+  <a
+    href={GOOGLE_AUTH_URL}
+    className="w-full h-11 flex items-center justify-center gap-3 bg-card border border-border rounded-button text-sm font-body font-medium text-foreground hover:bg-secondary transition-colors"
+  >
+    <svg width="18" height="18" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M47.532 24.552c0-1.636-.147-3.2-.418-4.698H24.48v9.01h12.987c-.57 2.992-2.26 5.532-4.79 7.232v5.998h7.74c4.532-4.174 7.115-10.32 7.115-17.542z" fill="#4285F4"/>
+      <path d="M24.48 48c6.48 0 11.916-2.148 15.888-5.808l-7.74-5.998c-2.148 1.44-4.896 2.292-8.148 2.292-6.264 0-11.568-4.23-13.464-9.918H3.012v6.192C6.972 42.948 15.204 48 24.48 48z" fill="#34A853"/>
+      <path d="M11.016 28.568A14.43 14.43 0 0 1 10.2 24c0-1.584.276-3.12.816-4.568v-6.192H3.012A23.94 23.94 0 0 0 .48 24c0 3.876.924 7.548 2.532 10.76l8.004-6.192z" fill="#FBBC05"/>
+      <path d="M24.48 9.514c3.528 0 6.696 1.212 9.192 3.594l6.876-6.876C36.396 2.39 30.96 0 24.48 0 15.204 0 6.972 5.052 3.012 13.24l8.004 6.192c1.896-5.688 7.2-9.918 13.464-9.918z" fill="#EA4335"/>
+    </svg>
+    Continue with Google
+  </a>
+);
+
+const Divider = () => (
+  <div className="flex items-center gap-3 my-1">
+    <div className="flex-1 h-px bg-border" />
+    <span className="text-xs font-body text-muted-foreground">or</span>
+    <div className="flex-1 h-px bg-border" />
+  </div>
+);
+
 const LoginPage = () => {
   const navigate = useNavigate();
   const { register, login, forgotPassword, verifyResetCode, resetPassword } = useAuth();
@@ -57,8 +82,15 @@ const LoginPage = () => {
       phone:    registerForm.phone.trim() || undefined,
       password: registerForm.password,
     }, {
-      onSuccess: () => {
-        setView('check-email');
+      onSuccess: (data: any) => {
+        // Store tokens and user — logged in immediately after register
+        localStorage.setItem('mk_user', JSON.stringify(data.data.user));
+        localStorage.setItem('mk_user_tokens', JSON.stringify({
+          accessToken:  data.data.accessToken,
+          refreshToken: data.data.refreshToken,
+        }));
+        toast.success('Account created! Welcome to Manish Kejani 🎉');
+        navigate('/');
       },
       onError: (err: any) => {
         toast.error(err?.response?.data?.message ?? 'Registration failed');
@@ -220,6 +252,8 @@ const LoginPage = () => {
                             Forgot password?
                           </button>
                         </p>
+                        <Divider />
+                        <GoogleButton />
                       </form>
                     )}
 
@@ -265,6 +299,8 @@ const LoginPage = () => {
                           className="w-full h-11 bg-primary text-primary-foreground rounded-button font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed">
                           {register.isPending ? 'Creating account...' : 'Create Account'}
                         </button>
+                        <Divider />
+                        <GoogleButton />
                       </form>
                     )}
                   </div>

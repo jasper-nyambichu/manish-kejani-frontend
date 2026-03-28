@@ -3,6 +3,7 @@ import { Heart, Star, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import type { Product } from '@/types/product.types';
+import { useWishlistStore } from '@/store/wishlistStore';
 
 interface ProductCardProps {
   product: Product;
@@ -23,25 +24,32 @@ const stockLabels: Record<string, string> = {
 };
 
 const ProductCard = ({ product }: ProductCardProps) => {
-  // Normalise id — backend returns both _id and id (virtual)
+  const toggleItem   = useWishlistStore(s => s.toggleItem);
+  const isInWishlist = useWishlistStore(s => s.isInWishlist);
+
   const productId = product.id ?? product._id;
-
-  // Normalise image — backend returns images[] array
-  const imageUrl = product.images?.[0]?.url ?? (product as any).image ?? '';
-
-  // Normalise category name
-  const categoryName = typeof product.category === 'object'
-    ? product.category.name
-    : product.category;
-
-  // Normalise status
-  const status = product.status ?? (product as any).stock ?? 'in_stock';
-
-  // Normalise discount
-  const discount = product.discountPercent ?? (product as any).discount;
-
-  // Normalise isNew
+  const imageUrl  = product.images?.[0]?.url ?? (product as any).image ?? '';
+  const categoryName = typeof product.category === 'object' ? product.category.name : product.category;
+  const status       = product.status ?? (product as any).stock ?? 'in_stock';
+  const discount     = product.discountPercent ?? (product as any).discount;
   const isNewArrival = product.isNewArrival ?? (product as any).isNew;
+  const inWishlist   = isInWishlist(productId);
+
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toggleItem({
+      id:            productId,
+      name:          product.name,
+      price:         product.price,
+      originalPrice: product.originalPrice,
+      image:         imageUrl,
+      category:      categoryName as string,
+      rating:        product.rating,
+      reviews:       product.reviews,
+      stock:         status,
+      discount:      discount,
+    });
+  };
 
   return (
     <motion.div
@@ -64,8 +72,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
       )}
 
       {/* Wishlist */}
-      <button className="absolute top-2 right-2 z-10 w-8 h-8 bg-card/80 backdrop-blur-sm rounded-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors">
-        <Heart className="w-4 h-4" />
+      <button
+        onClick={handleWishlist}
+        className={`absolute top-2 right-2 z-10 w-8 h-8 bg-card/80 backdrop-blur-sm rounded-full flex items-center justify-center transition-colors ${
+          inWishlist ? 'text-primary' : 'text-muted-foreground hover:text-primary'
+        }`}
+        title={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+      >
+        <Heart className={`w-4 h-4 ${inWishlist ? 'fill-primary' : ''}`} />
       </button>
 
       {/* Image */}
