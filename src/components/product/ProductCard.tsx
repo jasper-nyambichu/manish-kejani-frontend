@@ -156,16 +156,20 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <span className={`text-[10px] font-body font-semibold px-2 py-0.5 rounded-badge ${stockStyles[status] ?? 'bg-secondary text-muted-foreground'}`}>
             {stockLabels[status] ?? status}
           </span>
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={handleOrder}
+          <button
+            onClick={() => {
+              if (!isAuthenticated) {
+                toast.error('Please sign in to place an order');
+                navigate('/login');
+                return;
+              }
+              window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+            }}
             className="flex items-center gap-1 text-xs font-body font-medium text-primary hover:underline"
           >
             <MessageCircle className="w-3.5 h-3.5" />
             Order
-          </a>
+          </button>
         </div>
       </div>
     </motion.div>

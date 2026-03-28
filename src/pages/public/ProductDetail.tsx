@@ -38,13 +38,7 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'specs' | 'reviews'>('description');
 
-  const handleOrder = (e: React.MouseEvent) => {
-    if (!isAuthenticated) {
-      e.preventDefault();
-      toast.error('Please sign in to place an order');
-      navigate('/login');
-    }
-  };
+  const handleOrder = (_e: React.MouseEvent) => {}; // kept for compatibility
 
   if (isLoading) return (
     <div className="min-h-screen bg-background font-body">
@@ -190,12 +184,19 @@ const ProductDetail = () => {
 
                 {/* Actions */}
                 <div className="flex gap-2 mb-4">
-                  <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
-                    onClick={handleOrder}
+                  <button
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        toast.error('Please sign in to place an order');
+                        navigate('/login');
+                        return;
+                      }
+                      window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+                    }}
                     className="flex-1 flex items-center justify-center gap-2 h-12 bg-primary text-primary-foreground rounded-button font-semibold text-sm hover:opacity-90 transition-opacity">
                     <MessageCircle className="w-5 h-5" />
                     {isAuthenticated ? 'Order via WhatsApp' : 'Sign in to Order'}
-                  </a>
+                  </button>
                   <button
                     onClick={handleWishlist}
                     className={`w-12 h-12 border rounded-button flex items-center justify-center transition-colors ${
@@ -331,14 +332,21 @@ const ProductDetail = () => {
 
       {/* Sticky mobile WhatsApp bar */}
       <div className="fixed bottom-0 left-0 right-0 md:hidden bg-card border-t border-border p-3 z-40">
-        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
-          onClick={handleOrder}
+        <button
+          onClick={() => {
+            if (!isAuthenticated) {
+              toast.error('Please sign in to place an order');
+              navigate('/login');
+              return;
+            }
+            window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+          }}
           className="flex items-center justify-center gap-2 w-full h-12 bg-primary text-primary-foreground rounded-button font-semibold text-sm">
           <MessageCircle className="w-5 h-5" />
           {isAuthenticated
             ? `Order via WhatsApp — KSh ${(product.price * quantity).toLocaleString()}`
             : 'Sign in to Order'}
-        </a>
+        </button>
       </div>
 
       <Footer />
