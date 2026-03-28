@@ -1,12 +1,24 @@
 // src/pages/public/WishlistPage.tsx
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Heart, ChevronRight, Trash2, MessageCircle, ShoppingBag } from 'lucide-react';
 import { useWishlistStore } from '@/store/wishlistStore';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 const WishlistPage = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const { items, removeItem, clearWishlist } = useWishlistStore();
+
+  const handleOrder = (e: React.MouseEvent, name: string, price: number) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      toast.error('Please sign in to place an order');
+      navigate('/login');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background font-body">
@@ -90,9 +102,10 @@ const WishlistPage = () => {
                       <div className="flex gap-2">
                         <a href={`https://wa.me/254719769263?text=Hi, I'd like to order: ${encodeURIComponent(item.name)} (KSh ${item.price})`}
                           target="_blank" rel="noopener noreferrer"
+                          onClick={e => handleOrder(e, item.name, item.price)}
                           className="flex-1 flex items-center justify-center gap-1.5 h-9 bg-primary text-primary-foreground rounded-button font-body text-xs font-semibold hover:opacity-90 transition-opacity">
                           <MessageCircle className="w-3.5 h-3.5" />
-                          Order
+                          {isAuthenticated ? 'Order' : 'Sign in'}
                         </a>
                         <Link to={`/product/${item.id}`}
                           className="flex items-center justify-center gap-1.5 h-9 px-3 border border-border text-foreground rounded-button font-body text-xs hover:bg-secondary transition-colors">

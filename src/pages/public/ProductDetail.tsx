@@ -1,13 +1,16 @@
 // src/pages/public/ProductDetail.tsx
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useProduct, useRelatedProducts } from '@/hooks/useProduct';
+import { useAuth } from '@/hooks/useAuth';
+import { useWishlistStore } from '@/store/wishlistStore';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/product/ProductCard';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { Star, Heart, Share2, ChevronRight, Truck, ShieldCheck, RotateCcw, MessageCircle, Minus, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 const stockLabels: Record<string, string> = {
   in_stock:     '✓ In Stock',
@@ -25,11 +28,23 @@ const stockColors: Record<string, string> = {
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const toggleItem   = useWishlistStore(s => s.toggleItem);
+  const isInWishlist = useWishlistStore(s => s.isInWishlist);
   const { data: product, isLoading, isError } = useProduct(id!);
   const { data: relatedProducts = [] } = useRelatedProducts(id!, 6);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'specs' | 'reviews'>('description');
+
+  const handleOrder = (e: React.MouseEvent) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      toast.error('Please sign in to place an order');
+      navigate('/login');
+    }
+  };
 
   if (isLoading) return (
     <div className="min-h-screen bg-background font-body">
@@ -50,11 +65,29 @@ const ProductDetail = () => {
     </div>
   );
 
-  const images     = product.images?.length > 0 ? product.images.map((img: { url: string }) => img.url) : [];
+  const images      = product.images?.length > 0 ? product.images.map((img: { url: string }) => img.url) : [];
   const categoryName = typeof product.category === 'object' ? product.category.name : product.category;
   const categorySlug = typeof product.category === 'object' ? product.category.slug : (product.category as string)?.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-');
-  const status     = product.status ?? 'in_stock';
-  const discount   = product.discountPercent ?? 0;
+  const status       = product.status ?? 'in_stock';
+  const discount     = product.discountPercent ?? 0;
+  const productId    = product.id ?? product._id;
+  const imageUrl     = product.images?.[0]?.url ?? '';
+  const inWishlist   = isInWishlist(productId);
+
+  const handleWishlist = () => {
+    toggleItem({
+      id:            productId,
+      name:          product.name,
+      price:         product.price,
+      originalPrice: product.originalPrice,
+      image:         imageUrl,
+      category:      typeof product.category === 'object' ? product.category.name : product.category as string,
+      rating:        product.rating,
+      reviews:       product.reviews,
+      stock:         status,
+      discount:      discount,
+    });
+  };
 
   const whatsappUrl = `https://wa.me/254719769263?text=${encodeURIComponent(
     `Hi, I'd like to order:\n\n*${product.name}*\nQuantity: ${quantity}\nPrice: KSh ${(product.price * quantity).toLocaleString()}\n\nPlease confirm availability.`
@@ -158,12 +191,21 @@ const ProductDetail = () => {
                 {/* Actions */}
                 <div className="flex gap-2 mb-4">
                   <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+                    onClick={handleOrder}
                     className="flex-1 flex items-center justify-center gap-2 h-12 bg-primary text-primary-foreground rounded-button font-semibold text-sm hover:opacity-90 transition-opacity">
                     <MessageCircle className="w-5 h-5" />
-                    Order via WhatsApp
+                    {isAuthenticated ? 'Order via WhatsApp' : 'Sign in to Order'}
                   </a>
-                  <button className="w-12 h-12 border border-border rounded-button flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors">
-                    <Heart className="w-5 h-5" />
+                  <button
+                    onClick={handleWishlist}
+                    className={`w-12 h-12 border rounded-button flex items-center justify-center transition-colors ${
+                      inWishlist
+                        ? 'border-primary text-primary'
+                        : 'border-border text-muted-foreground hover:text-primary hover:border-primary'
+                    }`}
+                    title={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+                  >
+                    <Heart className={`w-5 h-5 ${inWishlist ? 'fill-primary' : ''}`} />
                   </button>
                   <button className="w-12 h-12 border border-border rounded-button flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors">
                     <Share2 className="w-5 h-5" />
@@ -290,9 +332,12 @@ const ProductDetail = () => {
       {/* Sticky mobile WhatsApp bar */}
       <div className="fixed bottom-0 left-0 right-0 md:hidden bg-card border-t border-border p-3 z-40">
         <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+          onClick={handleOrder}
           className="flex items-center justify-center gap-2 w-full h-12 bg-primary text-primary-foreground rounded-button font-semibold text-sm">
           <MessageCircle className="w-5 h-5" />
-          Order via WhatsApp — KSh {(product.price * quantity).toLocaleString()}
+          {isAuthenticated
+            ? `Order via WhatsApp — KSh ${(product.price * quantity).toLocaleString()}`
+            : 'Sign in to Order'}
         </a>
       </div>
 

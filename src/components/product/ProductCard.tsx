@@ -1,9 +1,11 @@
 // src/components/product/ProductCard.tsx
 import { Heart, Star, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import type { Product } from '@/types/product.types';
 import { useWishlistStore } from '@/store/wishlistStore';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 interface ProductCardProps {
   product: Product;
@@ -24,16 +26,30 @@ const stockLabels: Record<string, string> = {
 };
 
 const ProductCard = ({ product }: ProductCardProps) => {
+  const navigate     = useNavigate();
+  const { isAuthenticated } = useAuth();
   const toggleItem   = useWishlistStore(s => s.toggleItem);
   const isInWishlist = useWishlistStore(s => s.isInWishlist);
 
-  const productId = product.id ?? product._id;
-  const imageUrl  = product.images?.[0]?.url ?? (product as any).image ?? '';
+  const productId    = product.id ?? product._id;
+  const imageUrl     = product.images?.[0]?.url ?? (product as any).image ?? '';
   const categoryName = typeof product.category === 'object' ? product.category.name : product.category;
   const status       = product.status ?? (product as any).stock ?? 'in_stock';
   const discount     = product.discountPercent ?? (product as any).discount;
   const isNewArrival = product.isNewArrival ?? (product as any).isNew;
   const inWishlist   = isInWishlist(productId);
+
+  const whatsappUrl = `https://wa.me/254719769263?text=${encodeURIComponent(
+    `Hi, I'd like to order: ${product.name} (KSh ${product.price})`
+  )}`;
+
+  const handleOrder = (e: React.MouseEvent) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      toast.error('Please sign in to place an order');
+      navigate('/login');
+    }
+  };
 
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -141,9 +157,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
             {stockLabels[status] ?? status}
           </span>
           <a
-            href={`https://wa.me/254719769263?text=Hi, I'd like to order: ${encodeURIComponent(product.name)} (KSh ${product.price})`}
+            href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={handleOrder}
             className="flex items-center gap-1 text-xs font-body font-medium text-primary hover:underline"
           >
             <MessageCircle className="w-3.5 h-3.5" />
