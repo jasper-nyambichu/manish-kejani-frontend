@@ -38,9 +38,7 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'specs' | 'reviews'>('description');
 
-  const handleOrder = (_e: React.MouseEvent) => {}; // kept for compatibility
-
-  if (isLoading) return (
+if (isLoading) return (
     <div className="min-h-screen bg-background font-body">
       <Navbar />
       <LoadingSpinner className="py-32" />

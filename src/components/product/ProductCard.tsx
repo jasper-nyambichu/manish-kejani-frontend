@@ -43,14 +43,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
     `Hi, I'd like to order: ${product.name} (KSh ${product.price})`
   )}`;
 
-  const handleOrder = (e: React.MouseEvent) => {
-    if (!isAuthenticated) {
-      e.preventDefault();
-      toast.error('Please sign in to place an order');
-      navigate('/login');
-    }
-  };
-
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     toggleItem({
