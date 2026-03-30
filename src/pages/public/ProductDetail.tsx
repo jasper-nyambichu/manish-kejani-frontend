@@ -3,12 +3,12 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useProduct, useRelatedProducts } from '@/hooks/useProduct';
 import { useAuth } from '@/hooks/useAuth';
-import { useWishlistStore } from '@/store/wishlistStore';
+import { useCartStore } from '@/store/cartStore';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/product/ProductCard';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { Star, Heart, Share2, ChevronRight, Truck, ShieldCheck, RotateCcw, MessageCircle, Minus, Plus } from 'lucide-react';
+import { Star, ShoppingCart, Share2, ChevronRight, Truck, ShieldCheck, RotateCcw, MessageCircle, Minus, Plus, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -30,8 +30,8 @@ const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const toggleItem   = useWishlistStore(s => s.toggleItem);
-  const isInWishlist = useWishlistStore(s => s.isInWishlist);
+  const addItem  = useCartStore(s => s.addItem);
+  const isInCart = useCartStore(s => s.isInCart);
   const { data: product, isLoading, isError } = useProduct(id!);
   const { data: relatedProducts = [] } = useRelatedProducts(id!, 6);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -64,10 +64,10 @@ if (isLoading) return (
   const discount     = product.discountPercent ?? 0;
   const productId    = product.id ?? product._id;
   const imageUrl     = product.images?.[0]?.url ?? '';
-  const inWishlist   = isInWishlist(productId);
+  const inCart       = isInCart(productId);
 
-  const handleWishlist = () => {
-    toggleItem({
+  const handleAddToCart = () => {
+    addItem({
       id:            productId,
       name:          product.name,
       price:         product.price,
@@ -79,6 +79,7 @@ if (isLoading) return (
       stock:         status,
       discount:      discount,
     });
+    toast.success(`${product.name} added to cart`);
   };
 
   const whatsappUrl = `https://wa.me/254719769263?text=${encodeURIComponent(
@@ -196,15 +197,15 @@ if (isLoading) return (
                     {isAuthenticated ? 'Order via WhatsApp' : 'Sign in to Order'}
                   </button>
                   <button
-                    onClick={handleWishlist}
+                    onClick={handleAddToCart}
                     className={`w-12 h-12 border rounded-button flex items-center justify-center transition-colors ${
-                      inWishlist
-                        ? 'border-primary text-primary'
+                      inCart
+                        ? 'border-primary bg-primary/10 text-primary'
                         : 'border-border text-muted-foreground hover:text-primary hover:border-primary'
                     }`}
-                    title={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+                    title={inCart ? 'Added to cart' : 'Add to cart'}
                   >
-                    <Heart className={`w-5 h-5 ${inWishlist ? 'fill-primary' : ''}`} />
+                    {inCart ? <Check className="w-5 h-5" /> : <ShoppingCart className="w-5 h-5" />}
                   </button>
                   <button className="w-12 h-12 border border-border rounded-button flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors">
                     <Share2 className="w-5 h-5" />

@@ -1,11 +1,11 @@
 // src/components/layout/Navbar.tsx
 import { useState } from 'react';
-import { Search, User, Heart, Menu, X, Phone, MapPin, MessageCircle, LogOut, ChevronDown } from 'lucide-react';
+import { Search, User, ShoppingCart, Menu, X, Phone, MapPin, MessageCircle, LogOut, ChevronDown } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '@/assets/logo.png';
 import { useAuth } from '@/hooks/useAuth';
 import { useCategories } from '@/hooks/useCategories';
-import { useWishlistStore } from '@/store/wishlistStore';
+import { useCartStore } from '@/store/cartStore';
 import { toast } from 'sonner';
 
 const Navbar = () => {
@@ -16,7 +16,7 @@ const Navbar = () => {
 
   const { user, isAuthenticated, logout } = useAuth();
   const { data: categories = [] }         = useCategories();
-  const wishlistCount                     = useWishlistStore(s => s.items.length);
+  const cartCount                         = useCartStore(s => s.totalItems());
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +49,7 @@ const Navbar = () => {
             </span>
           </div>
           <div className="flex items-center gap-4 ml-auto">
-            <Link to="/wishlist" className="hover:text-primary transition-colors">Wishlist</Link>
+            <Link to="/cart" className="hover:text-primary transition-colors">Cart</Link>
             {isAuthenticated ? (
               <Link to="/profile" className="hover:text-primary transition-colors">
                 Hi, {user?.username}
@@ -69,12 +69,10 @@ const Navbar = () => {
       {/* Main navbar */}
       <div className="bg-card shadow-sm border-b border-border">
         <div className="container mx-auto px-4 flex items-center gap-4 h-16">
-          {/* Logo */}
           <Link to="/" className="flex-shrink-0">
             <img src={logo} alt="Manish Kejani" className="h-12 w-auto" />
           </Link>
 
-          {/* Search */}
           <form onSubmit={handleSearch} className="flex-1 hidden md:flex">
             <div className="relative w-full max-w-2xl">
               <input type="text" placeholder="Search kitchenware, bedding, décor..."
@@ -87,7 +85,6 @@ const Navbar = () => {
             </div>
           </form>
 
-          {/* Actions */}
           <div className="flex items-center gap-3">
             {/* User menu */}
             {isAuthenticated ? (
@@ -104,9 +101,9 @@ const Navbar = () => {
                       className="flex items-center gap-2 px-4 py-2.5 text-sm font-body text-foreground hover:bg-secondary transition-colors">
                       <User className="w-4 h-4" /> My Profile
                     </Link>
-                    <Link to="/wishlist" onClick={() => setUserMenuOpen(false)}
+                    <Link to="/cart" onClick={() => setUserMenuOpen(false)}
                       className="flex items-center gap-2 px-4 py-2.5 text-sm font-body text-foreground hover:bg-secondary transition-colors">
-                      <Heart className="w-4 h-4" /> Wishlist {wishlistCount > 0 && `(${wishlistCount})`}
+                      <ShoppingCart className="w-4 h-4" /> Cart {cartCount > 0 && `(${cartCount})`}
                     </Link>
                     <hr className="border-border" />
                     <button onClick={handleLogout}
@@ -123,12 +120,12 @@ const Navbar = () => {
               </Link>
             )}
 
-            {/* Wishlist icon */}
-            <Link to="/wishlist" className="relative hidden md:flex items-center text-foreground hover:text-primary transition-colors">
-              <Heart className={`w-5 h-5 ${wishlistCount > 0 ? 'fill-primary text-primary' : ''}`} />
-              {wishlistCount > 0 && (
+            {/* Cart icon */}
+            <Link to="/cart" className="relative hidden md:flex items-center text-foreground hover:text-primary transition-colors">
+              <ShoppingCart className={`w-5 h-5 ${cartCount > 0 ? 'text-primary' : ''}`} />
+              {cartCount > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-primary text-primary-foreground rounded-full text-[10px] flex items-center justify-center font-medium">
-                  {wishlistCount}
+                  {cartCount}
                 </span>
               )}
             </Link>
@@ -153,7 +150,7 @@ const Navbar = () => {
         </form>
       </div>
 
-      {/* Category nav bar */}
+      {/* Category nav */}
       <nav className="hidden md:block bg-card border-b border-border">
         <div className="container mx-auto px-4">
           <ul className="flex items-center gap-1 overflow-x-auto py-2 text-sm font-body font-medium">
@@ -190,9 +187,9 @@ const Navbar = () => {
                 <User className="w-4 h-4" /> My Account
               </Link>
             )}
-            <Link to="/wishlist" className="flex items-center gap-2 py-2 text-sm font-body font-medium text-foreground"
+            <Link to="/cart" className="flex items-center gap-2 py-2 text-sm font-body font-medium text-foreground"
               onClick={() => setMobileMenuOpen(false)}>
-              <Heart className="w-4 h-4" /> Wishlist {wishlistCount > 0 && `(${wishlistCount})`}
+              <ShoppingCart className="w-4 h-4" /> Cart {cartCount > 0 && `(${cartCount})`}
             </Link>
             <hr className="border-border" />
             <p className="text-xs font-body font-semibold text-muted-foreground uppercase tracking-wider pt-2">Categories</p>

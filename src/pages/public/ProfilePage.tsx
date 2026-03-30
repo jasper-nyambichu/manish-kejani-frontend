@@ -5,13 +5,13 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { User, Lock, LogOut, Heart, ChevronRight, Eye, EyeOff, Mail, Phone, Shield } from 'lucide-react';
-import { useWishlistStore } from '@/store/wishlistStore';
+import { User, Lock, LogOut, ShoppingCart, ChevronRight, Eye, EyeOff, Mail, Phone, Shield } from 'lucide-react';
+import { useCartStore } from '@/store/cartStore';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, isGoogleUser, logout, changePassword } = useAuth();
-  const wishlistCount = useWishlistStore(s => s.items.length);
+  const cartCount = useCartStore(s => s.totalItems());
 
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [showCurrent,      setShowCurrent]      = useState(false);
@@ -137,16 +137,16 @@ const ProfilePage = () => {
 
             {/* Quick links */}
             <div className="bg-card rounded-card border border-border overflow-hidden divide-y divide-border">
-              <Link to="/wishlist"
+              <Link to="/cart"
                 className="flex items-center justify-between px-6 py-4 hover:bg-secondary transition-colors">
                 <div className="flex items-center gap-3">
-                  <Heart className="w-5 h-5 text-primary" />
-                  <span className="text-sm font-body font-medium text-foreground">My Wishlist</span>
+                  <ShoppingCart className="w-5 h-5 text-primary" />
+                  <span className="text-sm font-body font-medium text-foreground">My Cart</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  {wishlistCount > 0 && (
+                  {cartCount > 0 && (
                     <span className="text-xs bg-primary/10 text-primary font-body font-semibold px-2 py-0.5 rounded-badge">
-                      {wishlistCount} items
+                      {cartCount} items
                     </span>
                   )}
                   <ChevronRight className="w-4 h-4 text-muted-foreground" />

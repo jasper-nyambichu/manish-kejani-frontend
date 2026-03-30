@@ -10,7 +10,7 @@ import Index from "./pages/public/Index";
 import ProductDetail from "./pages/public/ProductDetail";
 import CategoryPage from "./pages/public/CategoryPage";
 import SearchPage from "./pages/public/SearchPage";
-import WishlistPage from "./pages/public/WishlistPage";
+import CartPage from "./pages/public/CartPage";
 import LoginPage from "./pages/public/LoginPage";
 import VerifyEmailPage from "./pages/public/VerifyEmailPage";
 import GoogleAuthSuccess from "./pages/public/GoogleAuthSuccess";
@@ -47,7 +47,7 @@ const App = () => (
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
           <Route path="/search" element={<SearchPage />} />
-          <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path="/cart" element={<CartPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/auth/google/success" element={<GoogleAuthSuccess />} />

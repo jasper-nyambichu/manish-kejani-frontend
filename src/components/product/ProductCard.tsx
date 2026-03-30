@@ -1,9 +1,9 @@
 // src/components/product/ProductCard.tsx
-import { Heart, Star, MessageCircle } from 'lucide-react';
+import { ShoppingCart, Star, MessageCircle, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Product } from '@/types/product.types';
-import { useWishlistStore } from '@/store/wishlistStore';
+import { useCartStore } from '@/store/cartStore';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -26,10 +26,10 @@ const stockLabels: Record<string, string> = {
 };
 
 const ProductCard = ({ product }: ProductCardProps) => {
-  const navigate     = useNavigate();
+  const navigate          = useNavigate();
   const { isAuthenticated } = useAuth();
-  const toggleItem   = useWishlistStore(s => s.toggleItem);
-  const isInWishlist = useWishlistStore(s => s.isInWishlist);
+  const addItem           = useCartStore(s => s.addItem);
+  const isInCart          = useCartStore(s => s.isInCart);
 
   const productId    = product.id ?? product._id;
   const imageUrl     = product.images?.[0]?.url ?? (product as any).image ?? '';
@@ -37,15 +37,15 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const status       = product.status ?? (product as any).stock ?? 'in_stock';
   const discount     = product.discountPercent ?? (product as any).discount;
   const isNewArrival = product.isNewArrival ?? (product as any).isNew;
-  const inWishlist   = isInWishlist(productId);
+  const inCart       = isInCart(productId);
 
   const whatsappUrl = `https://wa.me/254719769263?text=${encodeURIComponent(
     `Hi, I'd like to order: ${product.name} (KSh ${product.price})`
   )}`;
 
-  const handleWishlist = (e: React.MouseEvent) => {
+  const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
-    toggleItem({
+    addItem({
       id:            productId,
       name:          product.name,
       price:         product.price,
@@ -57,6 +57,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
       stock:         status,
       discount:      discount,
     });
+    toast.success(`${product.name} added to cart`);
   };
 
   return (
@@ -79,15 +80,18 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </div>
       )}
 
-      {/* Wishlist */}
+      {/* Add to cart button */}
       <button
-        onClick={handleWishlist}
+        onClick={handleAddToCart}
         className={`absolute top-2 right-2 z-10 w-8 h-8 bg-card/80 backdrop-blur-sm rounded-full flex items-center justify-center transition-colors ${
-          inWishlist ? 'text-primary' : 'text-muted-foreground hover:text-primary'
+          inCart ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-primary'
         }`}
-        title={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+        title={inCart ? 'Added to cart' : 'Add to cart'}
       >
-        <Heart className={`w-4 h-4 ${inWishlist ? 'fill-primary' : ''}`} />
+        {inCart
+          ? <Check className="w-4 h-4" />
+          : <ShoppingCart className="w-4 h-4" />
+        }
       </button>
 
       {/* Image */}
@@ -143,7 +147,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           )}
         </div>
 
-        {/* Stock + WhatsApp */}
+        {/* Stock + Order */}
         <div className="flex items-center justify-between">
           <span className={`text-[10px] font-body font-semibold px-2 py-0.5 rounded-badge ${stockStyles[status] ?? 'bg-secondary text-muted-foreground'}`}>
             {stockLabels[status] ?? status}
