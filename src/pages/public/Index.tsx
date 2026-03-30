@@ -7,8 +7,15 @@ import BestSellers from "@/components/sections/BestSellers";
 import NewArrivals from "@/components/sections/NewArrivals";
 import PromoBanner from "@/components/sections/PromoBanner";
 import StatCounters from "@/components/sections/StatCounters";
+import { useEffect } from "react";
 
 const Index = () => {
+  // Wake up the Render backend immediately on page load
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL ?? 'http://localhost:5000'}/health`)
+      .catch(() => {}); // silent — just waking it up
+  }, []);
+
   return (
     <div className="min-h-screen bg-background font-body">
       <Navbar />
