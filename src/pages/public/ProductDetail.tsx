@@ -8,7 +8,8 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/product/ProductCard';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { Star, ShoppingCart, Share2, ChevronRight, Truck, ShieldCheck, RotateCcw, MessageCircle, Minus, Plus, Check } from 'lucide-react';
+import ImageLightbox from '@/components/common/ImageLightbox';
+import { Star, ShoppingCart, Share2, ChevronRight, Truck, ShieldCheck, RotateCcw, MessageCircle, Minus, Plus, Check, ZoomIn } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -35,6 +36,7 @@ const ProductDetail = () => {
   const { data: product, isLoading, isError } = useProduct(id!);
   const { data: relatedProducts = [] } = useRelatedProducts(id!, 6);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [lightboxOpen,   setLightboxOpen]  = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'specs' | 'reviews'>('description');
 
@@ -108,10 +110,18 @@ if (isLoading) return (
 
               {/* Image gallery */}
               <div className="p-4 md:p-6 border-b md:border-b-0 md:border-r border-border">
-                <div className="aspect-square rounded-lg overflow-hidden bg-secondary mb-3">
+                <div
+                  className="aspect-square rounded-lg overflow-hidden bg-secondary mb-3 relative cursor-zoom-in group"
+                  onClick={() => images.length > 0 && setLightboxOpen(true)}
+                >
                   {images.length > 0 ? (
-                    <motion.img key={selectedImage} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                      src={images[selectedImage]} alt={product.name} className="w-full h-full object-cover" />
+                    <>
+                      <motion.img key={selectedImage} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                        src={images[selectedImage]} alt={product.name} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                        <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
+                      </div>
+                    </>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm font-body">No image</div>
                   )}
@@ -328,6 +338,17 @@ if (isLoading) return (
           </div>
         )}
       </main>
+
+      {/* Image Lightbox */}
+      {lightboxOpen && images.length > 0 && (
+        <ImageLightbox
+          images={images}
+          currentIndex={selectedImage}
+          onClose={() => setLightboxOpen(false)}
+          onPrev={() => setSelectedImage(i => (i - 1 + images.length) % images.length)}
+          onNext={() => setSelectedImage(i => (i + 1) % images.length)}
+        />
+      )}
 
       {/* Sticky mobile WhatsApp bar */}
       <div className="fixed bottom-0 left-0 right-0 md:hidden bg-card border-t border-border p-3 z-40">

@@ -1,6 +1,7 @@
 // src/App.tsx
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import ScrollToTop from "./components/common/ScrollToTop";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAdminAuth } from "@/store/authStore";
@@ -41,6 +42,7 @@ const App = () => (
     <TooltipProvider>
       <Sonner richColors position="top-right" />
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Index />} />
