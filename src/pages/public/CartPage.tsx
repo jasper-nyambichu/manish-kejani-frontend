@@ -24,8 +24,9 @@ const CartPage = () => {
     const text = items.map(i =>
       `• ${i.name} x${i.quantity} — KSh ${(i.price * i.quantity).toLocaleString()}`
     ).join('\n');
+    const waNumber = import.meta.env.VITE_WHATSAPP_NUMBER ?? '254719769263';
     const message = `Hi Manish Kejani 👋\n\nI'd like to order the following:\n\n${text}\n\n*Total: KSh ${total.toLocaleString()}*\n\nPlease confirm availability and delivery. Thank you!`;
-    window.open(`https://wa.me/254719769263?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+    window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
   };
 
   return (

@@ -84,7 +84,8 @@ if (isLoading) return (
     toast.success(`${product.name} added to cart`);
   };
 
-  const whatsappUrl = `https://wa.me/254719769263?text=${encodeURIComponent(
+  const waNumber   = import.meta.env.VITE_WHATSAPP_NUMBER ?? '254719769263';
+  const whatsappUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(
     `Hi, I'd like to order:\n\n*${product.name}*\nQuantity: ${quantity}\nPrice: KSh ${(product.price * quantity).toLocaleString()}\n\nPlease confirm availability.`
   )}`;
 

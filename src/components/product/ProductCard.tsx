@@ -39,7 +39,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const isNewArrival = product.isNewArrival ?? (product as any).isNew;
   const inCart       = isInCart(productId);
 
-  const whatsappUrl = `https://wa.me/254719769263?text=${encodeURIComponent(
+  const waNumber   = import.meta.env.VITE_WHATSAPP_NUMBER ?? '254719769263';
+  const whatsappUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(
     `Hi, I'd like to order: ${product.name} (KSh ${product.price})`
   )}`;
 

@@ -1,7 +1,7 @@
 // src/hooks/useWhatsApp.ts
 import { useCallback, useEffect, useState } from 'react';
 import api from '@/lib/api';
-import type { Product } from '@/data/products';
+import type { Product } from '@/types/product.types';
 
 const fetchWhatsAppNumber = async (): Promise<string> => {
   const { data } = await api.get('/api/v1/whatsapp/number');
@@ -9,17 +9,20 @@ const fetchWhatsAppNumber = async (): Promise<string> => {
 };
 
 export const useWhatsApp = () => {
-  const [number, setNumber] = useState<string>('');
+  const [number, setNumber] = useState<string>(
+    import.meta.env.VITE_WHATSAPP_NUMBER ?? ''
+  );
 
   useEffect(() => {
     fetchWhatsAppNumber()
       .then(setNumber)
-      .catch(() => setNumber(import.meta.env.VITE_WHATSAPP_NUMBER ?? ''));
+      .catch(() => {/* keep env fallback already set in initial state */});
   }, []);
 
   const buildOrderUrl = useCallback(
     (product: Product, username: string, phone: string, quantity = 1): string => {
-      if (!number) return '#';
+      const n = number || import.meta.env.VITE_WHATSAPP_NUMBER;
+      if (!n) return '#';
 
       const lines = [
         `Hi Manish Kejani 👋`,
@@ -37,7 +40,7 @@ export const useWhatsApp = () => {
         `Please confirm availability and delivery. Thank you!`,
       ];
 
-      return `https://wa.me/${number}?text=${encodeURIComponent(lines.join('\n'))}`;
+      return `https://wa.me/${n}?text=${encodeURIComponent(lines.join('\n'))}`;
     },
     [number]
   );
@@ -45,7 +48,7 @@ export const useWhatsApp = () => {
   const openWhatsApp = useCallback(
     (product: Product, username: string, phone: string, quantity = 1) => {
       const url = buildOrderUrl(product, username, phone, quantity);
-      if (url !== '#') window.open(url, '_blank');
+      if (url !== '#') window.open(url, '_blank', 'noopener,noreferrer');
     },
     [buildOrderUrl]
   );
