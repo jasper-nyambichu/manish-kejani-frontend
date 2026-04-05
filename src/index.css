@@ -2,6 +2,9 @@
 @import "tailwindcss";
 
 @theme {
+  /* ── Custom breakpoints ────────────────────────────────────── */
+  --breakpoint-xs: 480px;
+
   /* ── Colour palette ─────────────────────────────────────────── */
   --color-background:         hsl(30 15% 97%);
   --color-foreground:         hsl(18 100% 5%);

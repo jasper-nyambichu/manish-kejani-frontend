@@ -1,5 +1,5 @@
 // src/components/layout/Navbar.tsx
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Search, User, ShoppingCart, Menu, X, Phone, MapPin, MessageCircle, LogOut, ChevronDown } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '@/assets/logo.png';
@@ -7,22 +7,40 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCategories } from '@/hooks/useCategories';
 import { useCartStore } from '@/store/cartStore';
 import { toast } from 'sonner';
+import SearchSuggestions from '@/components/common/SearchSuggestions';
+import { useSearchHistory } from '@/hooks/useSearchHistory';
 
 const Navbar = () => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery,    setSearchQuery]    = useState('');
-  const [userMenuOpen,   setUserMenuOpen]   = useState(false);
+  const [mobileMenuOpen,  setMobileMenuOpen]  = useState(false);
+  const [mobileQuery,     setMobileQuery]     = useState('');
+  const [userMenuOpen,    setUserMenuOpen]    = useState(false);
+  const [selectedCatId,   setSelectedCatId]   = useState('');
   const navigate = useNavigate();
 
   const { user, isAuthenticated, logout } = useAuth();
   const { data: categories = [] }         = useCategories();
   const cartCount                         = useCartStore(s => s.totalItems());
+  const { save: saveHistory }             = useSearchHistory();
 
-  const handleSearch = (e: React.FormEvent) => {
+  // Holds the commit fn registered by SearchSuggestions
+  const commitFnRef = useRef<(() => void) | null>(null);
+
+  const handleSearch = (query: string) => {
+    saveHistory(query);
+  };
+
+  const handleSearchButtonClick = () => {
+    commitFnRef.current?.();
+  };
+
+  const handleMobileSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery('');
+    if (mobileQuery.trim()) {
+      saveHistory(mobileQuery.trim());
+      const params = new URLSearchParams({ q: mobileQuery.trim() });
+      if (selectedCatId) params.append('category', selectedCatId);
+      navigate(`/search?${params}`);
+      setMobileQuery('');
     }
   };
 
@@ -73,17 +91,39 @@ const Navbar = () => {
             <img src={logo} alt="Manish Kejani" className="h-12 w-auto" />
           </Link>
 
-          <form onSubmit={handleSearch} className="flex-1 hidden md:flex">
-            <div className="relative w-full max-w-2xl">
-              <input type="text" placeholder="Search kitchenware, bedding, décor..."
-                value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                className="w-full h-10 pl-4 pr-12 bg-secondary text-foreground rounded-button font-body text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
-              <button type="submit"
-                className="absolute right-0 top-0 h-10 w-12 bg-primary text-primary-foreground rounded-r-button flex items-center justify-center hover:opacity-90 transition-opacity">
-                <Search className="w-5 h-5" />
+          {/* Desktop search: category selector + suggestions input */}
+          <div className="flex-1 hidden md:flex min-w-0">
+            <div className="flex w-full h-10 rounded-button overflow-hidden border border-border bg-secondary focus-within:ring-2 focus-within:ring-primary/30">
+              {/* Category selector — hidden on md, visible from lg */}
+              <select
+                value={selectedCatId}
+                onChange={e => setSelectedCatId(e.target.value)}
+                className="hidden lg:block h-full pl-3 pr-6 text-sm font-body bg-secondary text-foreground border-r border-border focus:outline-none cursor-pointer flex-shrink-0 w-36 xl:w-44"
+              >
+                <option value="">All Categories</option>
+                {(categories as any[]).map((cat: any) => (
+                  <option key={cat._id ?? cat.id} value={cat._id ?? cat.id}>{cat.name}</option>
+                ))}
+              </select>
+              {/* Suggestions input — fills remaining space */}
+              <div className="flex-1 min-w-0 relative">
+                <SearchSuggestions
+                  categoryId={selectedCatId}
+                  onSearch={handleSearch}
+                  registerCommit={fn => { commitFnRef.current = fn; }}
+                />
+              </div>
+              {/* Search button */}
+              <button
+                type="button"
+                onClick={handleSearchButtonClick}
+                className="h-full w-11 bg-primary text-primary-foreground flex items-center justify-center hover:opacity-90 transition-opacity flex-shrink-0"
+                aria-label="Search"
+              >
+                <Search className="w-4 h-4" />
               </button>
             </div>
-          </form>
+          </div>
 
           <div className="flex items-center gap-3">
             {/* User menu */}
@@ -137,14 +177,32 @@ const Navbar = () => {
         </div>
 
         {/* Mobile search */}
-        <form onSubmit={handleSearch} className="md:hidden px-4 pb-3">
-          <div className="relative">
-            <input type="text" placeholder="Search products..." value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="w-full h-10 pl-4 pr-12 bg-secondary text-foreground rounded-button font-body text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
-            <button type="submit"
-              className="absolute right-0 top-0 h-10 w-12 bg-primary text-primary-foreground rounded-r-button flex items-center justify-center">
-              <Search className="w-5 h-5" />
+        <form onSubmit={handleMobileSearch} className="md:hidden px-4 pb-3">
+          <div className="flex h-10 rounded-button overflow-hidden border border-border bg-secondary focus-within:ring-2 focus-within:ring-primary/30">
+            {/* Category selector on mobile */}
+            <select
+              value={selectedCatId}
+              onChange={e => setSelectedCatId(e.target.value)}
+              className="h-full pl-2 pr-5 text-xs font-body bg-secondary text-foreground border-r border-border focus:outline-none cursor-pointer flex-shrink-0 w-28"
+            >
+              <option value="">All</option>
+              {(categories as any[]).map((cat: any) => (
+                <option key={cat._id ?? cat.id} value={cat._id ?? cat.id}>{cat.name}</option>
+              ))}
+            </select>
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={mobileQuery}
+              onChange={e => setMobileQuery(e.target.value)}
+              className="flex-1 min-w-0 h-full pl-3 pr-2 bg-secondary text-foreground font-body text-sm focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="h-full w-11 bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0"
+              aria-label="Search"
+            >
+              <Search className="w-4 h-4" />
             </button>
           </div>
         </form>

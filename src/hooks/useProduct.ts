@@ -24,6 +24,9 @@ interface ProductFilters {
   featured?:    boolean;
   isFlashDeal?: boolean;
   isNewArrival?: boolean;
+  brand?:       string;
+  rating?:      number;
+  condition?:   string;
 }
 
 const fetchProducts = async (filters: ProductFilters = {}): Promise<ProductsResponse> => {
