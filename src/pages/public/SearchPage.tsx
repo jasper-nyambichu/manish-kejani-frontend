@@ -2,7 +2,6 @@
 import { useSearchParams, Link } from 'react-router-dom';
 import { useState, useMemo } from 'react';
 import { useSearchProducts } from '@/hooks/useProduct';
-import { useCategories } from '@/hooks/useCategories';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/product/ProductCard';
