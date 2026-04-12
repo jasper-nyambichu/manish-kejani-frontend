@@ -1,15 +1,11 @@
 // src/pages/public/CartPage.tsx
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { ShoppingCart, ChevronRight, Trash2, MessageCircle, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
 
 const CartPage = () => {
-  const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
   const { items, removeItem, updateQty, clearCart, totalItems, totalPrice } = useCartStore();
 
   const total      = totalPrice();

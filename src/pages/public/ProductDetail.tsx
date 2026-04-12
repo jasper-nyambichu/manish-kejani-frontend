@@ -1,8 +1,7 @@
 // src/pages/public/ProductDetail.tsx
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useProduct, useRelatedProducts } from '@/hooks/useProduct';
-import { useAuth } from '@/hooks/useAuth';
 import { useCartStore } from '@/store/cartStore';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -29,8 +28,6 @@ const stockColors: Record<string, string> = {
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
   const addItem  = useCartStore(s => s.addItem);
   const isInCart = useCartStore(s => s.isInCart);
   const { data: product, isLoading, isError } = useProduct(id!);
