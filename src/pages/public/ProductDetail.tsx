@@ -196,16 +196,11 @@ if (isLoading) return (
                 <div className="flex gap-2 mb-4">
                   <button
                     onClick={() => {
-                      if (!isAuthenticated) {
-                        toast.error('Please sign in to place an order');
-                        navigate('/login');
-                        return;
-                      }
                       window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
                     }}
                     className="flex-1 flex items-center justify-center gap-2 h-12 bg-primary text-primary-foreground rounded-button font-semibold text-sm hover:opacity-90 transition-opacity">
                     <MessageCircle className="w-5 h-5" />
-                    {isAuthenticated ? 'Order via WhatsApp' : 'Sign in to Order'}
+                    Order via WhatsApp
                   </button>
                   <button
                     onClick={handleAddToCart}
@@ -355,18 +350,11 @@ if (isLoading) return (
       <div className="fixed bottom-0 left-0 right-0 md:hidden bg-card border-t border-border p-3 z-40">
         <button
           onClick={() => {
-            if (!isAuthenticated) {
-              toast.error('Please sign in to place an order');
-              navigate('/login');
-              return;
-            }
             window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
           }}
           className="flex items-center justify-center gap-2 w-full h-12 bg-primary text-primary-foreground rounded-button font-semibold text-sm">
           <MessageCircle className="w-5 h-5" />
-          {isAuthenticated
-            ? `Order via WhatsApp — KSh ${(product.price * quantity).toLocaleString()}`
-            : 'Sign in to Order'}
+          Order via WhatsApp — KSh {(product.price * quantity).toLocaleString()}
         </button>
       </div>
 

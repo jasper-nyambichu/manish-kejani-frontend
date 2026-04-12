@@ -16,11 +16,6 @@ const CartPage = () => {
   const itemsCount = totalItems();
 
   const handleOrderAll = () => {
-    if (!isAuthenticated) {
-      toast.error('Please sign in to place an order');
-      navigate('/login');
-      return;
-    }
     const text = items.map(i =>
       `• ${i.name} x${i.quantity} — KSh ${(i.price * i.quantity).toLocaleString()}`
     ).join('\n');
@@ -159,7 +154,7 @@ const CartPage = () => {
                   <button onClick={handleOrderAll}
                     className="w-full h-12 bg-primary text-primary-foreground rounded-button font-body font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
                     <MessageCircle className="w-5 h-5" />
-                    {isAuthenticated ? 'Order via WhatsApp' : 'Sign in to Order'}
+                    Order via WhatsApp
                   </button>
 
                   <Link to="/"

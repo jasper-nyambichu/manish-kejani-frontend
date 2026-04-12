@@ -4,30 +4,53 @@ import { useNavigate } from 'react-router-dom';
 import { Search, X, Clock } from 'lucide-react';
 import api from '@/lib/api';
 import { useSearchHistory } from '@/hooks/useSearchHistory';
+import { useCategories } from '@/hooks/useCategories';
+
+interface CategoryItem {
+  _id?: string;
+  id?: string;
+  name: string;
+  slug?: string;
+}
+
+interface ProductItem {
+  _id?: string;
+  id?: string;
+  name: string;
+}
 
 interface Suggestion {
   id: string;
   name: string;
-  price: number;
-  image?: string;
+  type: 'category' | 'product';
+  slug?: string;
 }
 
 interface Props {
-  categoryId:    string;
+  categoryId?:   string;
   onSearch:      (query: string) => void;
-  onTrigger?:    () => void;   // called by parent search button
-  registerCommit?: (fn: () => void) => void; // lets parent fire commit
+  onTrigger?:    () => void;
+  registerCommit?: (fn: () => void) => void;
 }
 
 const highlight = (text: string, query: string) => {
-  if (!query.trim()) return <>{text}</>;
-  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-  const parts = text.split(regex);
+  if (!query.trim()) return <span className="font-bold text-gray-800">{text}</span>;
+  
+  const lowerText = text.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+  const index = lowerText.indexOf(lowerQuery);
+  
+  if (index === -1) return <span className="font-bold text-gray-800">{text}</span>;
+  
+  const before = text.substring(0, index);
+  const matched = text.substring(index, index + query.length);
+  const after = text.substring(index + query.length);
+  
   return (
     <>
-      {parts.map((part, i) =>
-        regex.test(part) ? <strong key={i} className="font-bold text-foreground">{part}</strong> : part
-      )}
+      {before && <span className="font-bold text-gray-800">{before}</span>}
+      <span className="font-normal text-gray-800">{matched}</span>
+      {after && <span className="font-bold text-gray-800">{after}</span>}
     </>
   );
 };
@@ -35,6 +58,7 @@ const highlight = (text: string, query: string) => {
 const SearchSuggestions = ({ categoryId, onSearch, registerCommit }: Props) => {
   const navigate                          = useNavigate();
   const { history, save, remove, clear }  = useSearchHistory();
+  const { data: categories = [] }         = useCategories();
   const [query,       setQuery]           = useState('');
   const [suggestions, setSuggestions]     = useState<Suggestion[]>([]);
   const [open,        setOpen]            = useState(false);
@@ -45,7 +69,6 @@ const SearchSuggestions = ({ categoryId, onSearch, registerCommit }: Props) => {
   const debounceRef                       = useRef<ReturnType<typeof setTimeout> | null>(null);
   const commitRef                         = useRef<(q: string) => void>(() => {});
 
-  // Click outside → close
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -57,29 +80,45 @@ const SearchSuggestions = ({ categoryId, onSearch, registerCommit }: Props) => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // Debounced fetch suggestions
   const fetchSuggestions = useCallback(async (q: string) => {
     if (!q.trim()) { setSuggestions([]); return; }
     setLoading(true);
     try {
+      const lowerQ = q.toLowerCase();
+      const matchingCats = (categories as CategoryItem[])
+        .filter(c => c.name.toLowerCase().includes(lowerQ))
+        .slice(0, 2)
+        .map(c => ({ id: c._id ?? c.id ?? '', name: c.name, type: 'category' as const, slug: c.slug }));
+
       const params = new URLSearchParams({ q, limit: '6' });
       if (categoryId) params.append('category', categoryId);
       const { data } = await api.get(`/api/v1/products/search?${params}`);
-      const products: any[] = data?.data?.products ?? [];
-      setSuggestions(
-        products.slice(0, 6).map(p => ({
-          id:    p.id ?? p._id,
+      
+      const products: ProductItem[] = data?.data?.products ?? [];
+      const productSugs = products.map(p => ({
+          id:    p.id ?? p._id ?? '',
           name:  p.name,
-          price: p.price,
-          image: p.images?.[0]?.url ?? p.image ?? '',
-        }))
-      );
+          type: 'product' as const
+      }));
+
+      const combined = [...matchingCats, ...productSugs];
+      const unique: Suggestion[] = [];
+      const seen = new Set<string>();
+      for (const s of combined) {
+        const lowerName = s.name.toLowerCase();
+        if (!seen.has(lowerName)) {
+          seen.add(lowerName);
+          unique.push(s);
+        }
+      }
+      
+      setSuggestions(unique.slice(0, 8));
     } catch {
       setSuggestions([]);
     } finally {
       setLoading(false);
     }
-  }, [categoryId]);
+  }, [categoryId, categories]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -90,21 +129,32 @@ const SearchSuggestions = ({ categoryId, onSearch, registerCommit }: Props) => {
     debounceRef.current = setTimeout(() => fetchSuggestions(val), 300);
   };
 
-  const commit = useCallback((q: string) => {
-    if (!q.trim()) return;
-    save(q.trim());
-    onSearch(q.trim());
-    setQuery(q.trim());
-    setOpen(false);
-    setActiveIdx(-1);
-    const params = new URLSearchParams({ q: q.trim() });
-    if (categoryId) params.append('category', categoryId);
-    navigate(`/search?${params}`);
+  const commit = useCallback((q: string | Suggestion) => {
+    if (typeof q === 'string') {
+      if (!q.trim()) return;
+      save(q.trim());
+      onSearch(q.trim());
+      setQuery(q.trim());
+      setOpen(false);
+      setActiveIdx(-1);
+      const params = new URLSearchParams({ q: q.trim() });
+      if (categoryId) params.append('category', categoryId);
+      navigate(`/search?${params}`);
+    } else {
+      if (q.type === 'category') {
+        save(q.name);
+        setQuery(q.name);
+        setOpen(false);
+        setActiveIdx(-1);
+        navigate(`/category/${q.slug}`);
+      } else {
+        commit(q.name);
+      }
+    }
   }, [save, onSearch, categoryId, navigate]);
 
-  // Register commit with parent so the external button can fire it
   useEffect(() => {
-    commitRef.current = commit;
+    commitRef.current = (q: string) => commit(q);
     registerCommit?.(() => commit(query));
   }, [commit, query, registerCommit]);
 
@@ -123,8 +173,13 @@ const SearchSuggestions = ({ categoryId, onSearch, registerCommit }: Props) => {
     } else if (e.key === 'Enter') {
       e.preventDefault();
       if (activeIdx >= 0) {
-        const selected = query.trim() ? suggestions[activeIdx]?.name : history[activeIdx];
-        if (selected) commit(selected);
+        if (query.trim()) {
+          const s = suggestions[activeIdx];
+          if (s) commit(s);
+        } else {
+          const h = history[activeIdx] as string;
+          if (h) commit(h);
+        }
       } else {
         commit(query);
       }
@@ -138,47 +193,47 @@ const SearchSuggestions = ({ categoryId, onSearch, registerCommit }: Props) => {
   const showSuggestions = open && !!query.trim() && (loading || suggestions.length > 0);
 
   return (
-    // containerRef wraps the full-width slot so the dropdown inherits the correct width
-    <div ref={containerRef} className="relative w-full h-full">
+    <div ref={containerRef} className="relative w-full h-full bg-white rounded flex items-center">
+      <div className="absolute left-3 flex items-center pointer-events-none">
+        <Search className="w-5 h-5 text-gray-500" />
+      </div>
       <input
         ref={inputRef}
         type="text"
         value={query}
-        placeholder="Search products..."
+        placeholder="Search products, brands and categories"
         onChange={handleChange}
         onFocus={() => setOpen(true)}
         onKeyDown={handleKeyDown}
-        className="w-full h-full pl-3 pr-2 bg-secondary text-foreground text-sm font-body focus:outline-none"
+        className="w-full h-full pl-[40px] pr-2 bg-transparent text-gray-900 text-[15px] font-body focus:outline-none rounded placeholder-gray-500"
         autoComplete="off"
       />
 
-      {/* Dropdown — anchored to the full search-bar width via left-0/right-0 on the parent */}
       {(showHistory || showSuggestions) && (
-        <div className="absolute top-full left-0 right-0 z-50 bg-card border border-border shadow-lg overflow-hidden"
-          style={{ borderRadius: '0 0 8px 8px', marginTop: 1 }}>
+        <div className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-300 shadow-xl overflow-hidden"
+          style={{ borderRadius: '0 0 4px 4px', marginTop: 0 }}>
 
-          {/* Recent searches */}
           {showHistory && (
             <>
-              <div className="flex items-center justify-between px-3 py-2 border-b border-border">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Recent Searches</span>
+              <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100 bg-gray-50">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Recent Searches</span>
                 <button onMouseDown={e => { e.preventDefault(); clear(); }}
-                  className="text-xs text-primary hover:underline">Clear History</button>
+                  className="text-xs text-[#f68b1e] hover:underline font-bold">Clear</button>
               </div>
               {history.map((h, i) => (
                 <div
                   key={h}
-                  onMouseDown={() => commit(h)}
+                  onMouseDown={(e) => { e.preventDefault(); commit(h); }}
                   onMouseEnter={() => setActiveIdx(i)}
-                  className={`flex items-center justify-between px-3 py-2.5 cursor-pointer transition-colors ${activeIdx === i ? 'bg-secondary' : 'hover:bg-secondary'}`}
+                  className={`flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors ${activeIdx === i ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
                 >
-                  <span className="flex items-center gap-2 text-sm font-body text-foreground min-w-0">
-                    <Clock className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                  <span className="flex items-center gap-3 text-[15px] p-0 m-0 font-body text-gray-800 min-w-0">
+                    <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
                     <span className="truncate">{h}</span>
                   </span>
                   <button
                     onMouseDown={e => { e.stopPropagation(); e.preventDefault(); remove(h); }}
-                    className="ml-2 flex-shrink-0 text-muted-foreground hover:text-destructive transition-colors p-1 rounded"
+                    className="ml-2 flex-shrink-0 text-gray-400 hover:text-red-500 transition-colors p-1 rounded"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -187,30 +242,25 @@ const SearchSuggestions = ({ categoryId, onSearch, registerCommit }: Props) => {
             </>
           )}
 
-          {/* Live suggestions */}
           {showSuggestions && (
             loading ? (
-              <div className="px-3 py-3 text-sm text-muted-foreground font-body">Searching...</div>
+              <div className="px-4 py-3 text-[15px] text-gray-500 font-body bg-white">Searching...</div>
             ) : (
               suggestions.map((s, i) => (
                 <div
                   key={s.id}
-                  onMouseDown={() => commit(s.name)}
+                  onMouseDown={(e) => { e.preventDefault(); commit(s); }}
                   onMouseEnter={() => setActiveIdx(i)}
-                  className={`flex items-center gap-2 sm:gap-3 px-3 py-2 cursor-pointer transition-colors ${activeIdx === i ? 'bg-secondary' : 'hover:bg-secondary'}`}
+                  className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors bg-white ${activeIdx === i ? '!bg-gray-50' : 'hover:bg-gray-50'}`}
                 >
-                  {/* Thumbnail — hidden on very small screens to save space */}
-                  <div className="hidden xs:flex w-9 h-9 flex-shrink-0 rounded bg-secondary overflow-hidden border border-border items-center justify-center">
-                    {s.image
-                      ? <img src={s.image} alt={s.name} className="w-full h-full object-cover" loading="lazy" />
-                      : <Search className="w-4 h-4 text-muted-foreground" />
-                    }
-                  </div>
-                  <span className="flex-1 text-sm font-body text-muted-foreground truncate min-w-0">
+                  <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  <span className="flex-1 text-[15px] font-body truncate min-w-0 flex items-center">
                     {highlight(s.name, query)}
-                  </span>
-                  <span className="text-xs sm:text-sm font-body font-semibold text-foreground flex-shrink-0 whitespace-nowrap">
-                    KSh {s.price.toLocaleString()}
+                    {s.type === 'category' && (
+                      <span className="ml-2 text-[9px] uppercase font-bold tracking-wider text-gray-500 bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded">
+                        Category
+                      </span>
+                    )}
                   </span>
                 </div>
               ))
