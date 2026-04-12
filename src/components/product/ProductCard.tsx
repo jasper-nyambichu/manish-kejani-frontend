@@ -1,5 +1,5 @@
 // src/components/product/ProductCard.tsx
-import { ShoppingCart, Star, MessageCircle, Check } from 'lucide-react';
+import { Star, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Product } from '@/types/product.types';
@@ -63,9 +63,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   return (
     <motion.div
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.2 }}
-      className="bg-card rounded-card border border-border overflow-hidden group relative"
+      className="bg-[#fff] dark:bg-card rounded-[4px] border-none overflow-hidden group relative hover:shadow-[0_4px_20px_0_rgba(0,0,0,0.2)] hover:z-10 transition-shadow duration-300 flex flex-col h-full"
     >
       {/* Discount badge */}
       {discount > 0 && (
@@ -81,28 +79,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </div>
       )}
 
-      {/* Add to cart button */}
-      <button
-        onClick={handleAddToCart}
-        className={`absolute top-2 right-2 z-10 w-8 h-8 bg-card/80 backdrop-blur-sm rounded-full flex items-center justify-center transition-colors ${
-          inCart ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-primary'
-        }`}
-        title={inCart ? 'Added to cart' : 'Add to cart'}
-      >
-        {inCart
-          ? <Check className="w-4 h-4" />
-          : <ShoppingCart className="w-4 h-4" />
-        }
-      </button>
-
       {/* Image */}
       <Link to={`/product/${productId}`}>
-        <div className="aspect-square overflow-hidden bg-secondary">
+        <div className="aspect-square overflow-hidden bg-white dark:bg-secondary/10 p-2">
           {imageUrl ? (
             <img
               src={imageUrl}
               alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 mix-blend-multiply dark:mix-blend-normal"
               loading="lazy"
             />
           ) : (
@@ -162,12 +146,22 @@ const ProductCard = ({ product }: ProductCardProps) => {
               }
               window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
             }}
-            className="flex items-center gap-1 text-xs font-body font-medium text-primary hover:underline"
+            className="flex items-center gap-1 text-xs font-body font-medium text-primary hover:scale-105 hover:underline transition-all duration-300 relative z-[21]"
           >
             <MessageCircle className="w-3.5 h-3.5" />
             Order
           </button>
         </div>
+      </div>
+
+      {/* Jumia Hover Overlay Add to Cart */}
+      <div className="absolute overflow-hidden bottom-0 left-0 w-full p-2 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 z-20 bg-white dark:bg-card shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <button
+          onClick={handleAddToCart}
+          className="w-full bg-[#f68b1e] hover:brightness-110 text-white font-bold text-[13px] uppercase py-2.5 rounded-[4px] shadow-sm transition-all"
+        >
+          {inCart ? 'ADDED TO CART' : 'ADD TO CART'}
+        </button>
       </div>
     </motion.div>
   );
