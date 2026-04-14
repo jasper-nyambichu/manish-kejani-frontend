@@ -98,7 +98,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
       </Link>
 
       {/* Info */}
-      <div className="p-3">
+      <div className="p-3 flex flex-col flex-1">
         <p className="text-xs font-body text-muted-foreground mb-1">{categoryName}</p>
 
         <Link to={`/product/${productId}`}>
@@ -106,6 +106,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
             {product.name}
           </h3>
         </Link>
+
+        {/* Spacer - pushes everything below to the bottom */}
+        <div className="flex-1" />
 
         {/* Rating */}
         <div className="flex items-center gap-1 mb-2">

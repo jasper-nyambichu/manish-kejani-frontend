@@ -1,5 +1,5 @@
 // src/components/layout/Navbar.tsx
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { User, ShoppingCart, Menu, X, Phone, MapPin, ChevronDown, HelpCircle, Star } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '@/assets/logo.png';
@@ -29,6 +29,36 @@ const Navbar = () => {
   const cartCount                         = useCartStore(s => s.totalItems());
   const { save: saveHistory }             = useSearchHistory();
 
+  const [scrollDirection, setScrollDirection] = useState<'up' | 'down'>('up');
+  const lastScrollYRef = useRef(0);
+
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [mobileMenuOpen]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const delta = currentScrollY - lastScrollYRef.current;
+
+      // Only change direction if scroll delta exceeds a threshold to prevent flickering
+      if (delta > 10 && currentScrollY > 80) {
+        setScrollDirection('down');
+      } else if (delta < -10) {
+        setScrollDirection('up');
+      }
+      lastScrollYRef.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // Holds the commit fns registered by SearchSuggestions
   const desktopCommitFnRef = useRef<(() => void) | null>(null);
   const mobileCommitFnRef  = useRef<(() => void) | null>(null);
@@ -45,9 +75,10 @@ const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50">
+    <>
+    <header className={`sticky top-0 z-50 transition-transform duration-300 ${scrollDirection === 'down' ? 'md:-translate-y-8' : 'translate-y-0'}`}>
       {/* Top bar */}
-      <div className="bg-[#f1f1f2] md:block hidden py-1">
+      <div className="bg-[#f1f1f2] md:block hidden py-1 h-8">
         <div className="container mx-auto px-4 flex items-center justify-between h-8 text-xs font-body max-w-7xl">
           <div className="flex items-center gap-1 cursor-pointer hover:underline text-[#f68b1e] font-bold">
             <Star className="w-3.5 h-3.5 fill-[#f68b1e]" />
@@ -186,7 +217,7 @@ const Navbar = () => {
       </div>
 
       {/* Category nav */}
-      <nav className="hidden md:block bg-white border-b border-gray-200 shadow-sm">
+      <nav className={`hidden md:block bg-white border-b border-gray-200 shadow-sm transition-all duration-300 ${scrollDirection === 'down' ? 'max-h-0 opacity-0 overflow-hidden border-transparent' : 'max-h-14 opacity-100 overflow-visible'}`}>
         <div className="container mx-auto px-4 max-w-7xl">
           <ul className="flex items-center gap-4 overflow-x-auto py-2.5 text-sm font-body font-medium scrollbar-hide text-gray-600">
             {(categories as CategoryItem[]).map((cat: CategoryItem) => (
@@ -200,61 +231,62 @@ const Navbar = () => {
           </ul>
         </div>
       </nav>
-
-      {/* Mobile Sidebar Overlay */}
-      <div 
-        className={`md:hidden fixed inset-0 bg-black/60 z-[60] transition-opacity duration-300 ${
-          mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={() => setMobileMenuOpen(false)}
-        aria-hidden="true"
-      />
-
-      {/* Mobile Sidebar Panel */}
-      <div
-        className={`md:hidden fixed inset-y-0 left-0 w-[280px] bg-white z-[70] shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col ${
-          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
-          <span className="font-bold text-lg font-body text-gray-800">Manish Kejani</span>
-          <button onClick={() => setMobileMenuOpen(false)} className="text-gray-500 p-1 hover:text-[#f68b1e] transition-colors">
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-        <div className="px-4 py-4 space-y-2 overflow-y-auto flex-1">
-          {isAuthenticated ? (
-            <>
-              <Link to="/profile" className="flex items-center gap-3 py-2.5 text-sm font-body font-bold text-gray-700 hover:text-[#f68b1e] transition-colors"
-                onClick={() => setMobileMenuOpen(false)}>
-                <User className="w-5 h-5" /> Hi, {user?.username}
-              </Link>
-              <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
-                className="flex items-center gap-3 py-2.5 text-sm font-body font-bold text-[#f68b1e] w-full hover:opacity-80 transition-opacity">
-                Logout
-              </button>
-            </>
-          ) : (
-            <Link to="/login" className="flex items-center gap-3 py-2.5 text-sm font-body font-bold text-gray-700 hover:text-[#f68b1e] transition-colors"
-              onClick={() => setMobileMenuOpen(false)}>
-              <User className="w-5 h-5" /> Sign In
-            </Link>
-          )}
-          <a href="https://wa.me/254719769263" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 py-2.5 text-sm font-body font-bold text-gray-700 hover:text-[#f68b1e] transition-colors">
-            <HelpCircle className="w-5 h-5" /> Order via WhatsApp
-          </a>
-          <hr className="border-gray-200 my-4" />
-          <p className="text-xs font-body font-bold text-gray-400 uppercase tracking-wider mb-2">Our Categories</p>
-          {(categories as CategoryItem[]).map((cat: CategoryItem) => (
-            <Link key={cat._id ?? cat.id} to={`/category/${cat.slug}`}
-              className="flex items-center gap-3 py-2.5 text-sm font-body font-medium text-gray-700 hover:text-[#f68b1e] hover:bg-gray-50 rounded transition-colors"
-              onClick={() => setMobileMenuOpen(false)}>
-              {cat.name}
-            </Link>
-          ))}
-        </div>
-      </div>
     </header>
+
+    {/* Mobile Sidebar Overlay - OUTSIDE header to avoid transform issues */}
+    <div 
+      className={`md:hidden fixed inset-0 bg-black/60 z-[60] transition-opacity duration-300 ${
+        mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+      }`}
+      onClick={() => setMobileMenuOpen(false)}
+      aria-hidden="true"
+    />
+
+    {/* Mobile Sidebar Panel - OUTSIDE header to avoid transform issues */}
+    <div
+      className={`md:hidden fixed inset-y-0 left-0 w-[280px] bg-white z-[70] shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col ${
+        mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}
+    >
+      <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
+        <span className="font-bold text-lg font-body text-gray-800">Manish Kejani</span>
+        <button onClick={() => setMobileMenuOpen(false)} className="text-gray-500 p-1 hover:text-[#f68b1e] transition-colors">
+          <X className="w-6 h-6" />
+        </button>
+      </div>
+      <div className="px-4 py-4 space-y-2 overflow-y-auto flex-1">
+        {isAuthenticated ? (
+          <>
+            <Link to="/profile" className="flex items-center gap-3 py-2.5 text-sm font-body font-bold text-gray-700 hover:text-[#f68b1e] transition-colors"
+              onClick={() => setMobileMenuOpen(false)}>
+              <User className="w-5 h-5" /> Hi, {user?.username}
+            </Link>
+            <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
+              className="flex items-center gap-3 py-2.5 text-sm font-body font-bold text-[#f68b1e] w-full hover:opacity-80 transition-opacity">
+              Logout
+            </button>
+          </>
+        ) : (
+          <Link to="/login" className="flex items-center gap-3 py-2.5 text-sm font-body font-bold text-gray-700 hover:text-[#f68b1e] transition-colors"
+            onClick={() => setMobileMenuOpen(false)}>
+            <User className="w-5 h-5" /> Sign In
+          </Link>
+        )}
+        <a href="https://wa.me/254719769263" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 py-2.5 text-sm font-body font-bold text-gray-700 hover:text-[#f68b1e] transition-colors">
+          <HelpCircle className="w-5 h-5" /> Order via WhatsApp
+        </a>
+        <hr className="border-gray-200 my-4" />
+        <p className="text-xs font-body font-bold text-gray-400 uppercase tracking-wider mb-2">Our Categories</p>
+        {(categories as CategoryItem[]).map((cat: CategoryItem) => (
+          <Link key={cat._id ?? cat.id} to={`/category/${cat.slug}`}
+            className="flex items-center gap-3 py-2.5 text-sm font-body font-medium text-gray-700 hover:text-[#f68b1e] hover:bg-gray-50 rounded transition-colors"
+            onClick={() => setMobileMenuOpen(false)}>
+            {cat.name}
+          </Link>
+        ))}
+      </div>
+    </div>
+    </>
   );
 };
 
