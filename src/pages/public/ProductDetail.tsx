@@ -40,7 +40,6 @@ const ProductDetail = () => {
   const isInWishlist   = useWishlistStore(s => s.isInWishlist);
   const { data: product, isLoading, isError } = useProduct(id!);
   const { data: relatedProducts = [] } = useRelatedProducts(id!, 6);
-  const { isAuthenticated } = useAuth();
   const [selectedImage, setSelectedImage] = useState(0);
   const [lightboxOpen,   setLightboxOpen]  = useState(false);
   const [quantity,       setQuantity]      = useState(1);

@@ -2,7 +2,7 @@
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { ChevronRight, Truck, Clock, MapPin, AlertCircle, CheckCircle } from 'lucide-react';
+import { ChevronRight, Truck, MapPin, AlertCircle } from 'lucide-react';
 
 const zones = [
   { location: 'Kisii Town (CBD)',  time: 'Same day — orders before 2 PM', fee: 'KSh 100 – 200', color: 'text-success', bg: 'bg-success/10' },
