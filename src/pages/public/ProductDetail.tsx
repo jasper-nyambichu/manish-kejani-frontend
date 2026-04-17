@@ -1,5 +1,5 @@
 // src/pages/public/ProductDetail.tsx
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useProduct, useRelatedProducts } from '@/hooks/useProduct';
 import { useCartStore } from '@/store/cartStore';
@@ -34,6 +34,8 @@ const stockColors: Record<string, string> = {
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const addItem     = useCartStore(s => s.addItem);
   const isInCart     = useCartStore(s => s.isInCart);
   const toggleWishlist = useWishlistStore(s => s.toggleItem);
@@ -247,7 +249,14 @@ const ProductDetail = () => {
                 {/* Actions */}
                 <div className="flex gap-2 mb-4">
                   <button
-                    onClick={() => window.open(whatsappUrl, '_blank', 'noopener,noreferrer')}
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        toast.error('Please sign in to place an order');
+                        navigate('/login');
+                        return;
+                      }
+                      window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+                    }}
                     className="flex-1 flex items-center justify-center gap-2 h-12 bg-primary text-primary-foreground rounded-button font-semibold text-sm hover:opacity-90 transition-opacity">
                     <MessageCircle className="w-5 h-5" />
                     Order via WhatsApp
@@ -440,6 +449,11 @@ const ProductDetail = () => {
       <div className="fixed bottom-0 left-0 right-0 md:hidden bg-card border-t border-border p-3 z-40">
         <button
           onClick={() => {
+            if (!isAuthenticated) {
+              toast.error('Please sign in to place an order');
+              navigate('/login');
+              return;
+            }
             window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
           }}
           className="flex items-center justify-center gap-2 w-full h-12 bg-primary text-primary-foreground rounded-button font-semibold text-sm">
