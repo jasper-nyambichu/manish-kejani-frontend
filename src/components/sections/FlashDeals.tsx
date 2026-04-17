@@ -73,7 +73,7 @@ const FlashDeals = () => {
             <span className="font-body font-bold text-primary-foreground text-sm md:text-base">Flash Sales | Live Now</span>
           </div>
           <CountdownTimer />
-          <a href="#" className="text-xs font-body font-semibold text-primary-foreground hover:underline hidden md:block">See All →</a>
+          <a href="/flash-sales" className="text-xs font-body font-semibold text-primary-foreground hover:underline hidden md:block">See All →</a>
         </div>
         <div className="bg-card rounded-b-card border border-t-0 border-border p-3 md:p-0 relative">
 

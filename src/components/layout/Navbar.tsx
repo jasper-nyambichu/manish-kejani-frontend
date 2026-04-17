@@ -1,6 +1,6 @@
 // src/components/layout/Navbar.tsx
 import { useState, useRef, useEffect } from 'react';
-import { User, ShoppingCart, Menu, X, Phone, MapPin, ChevronDown, HelpCircle, Star } from 'lucide-react';
+import { User, ShoppingCart, Menu, X, Phone, MapPin, ChevronDown, HelpCircle, Star, Heart } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '@/assets/logo.png';
 import { useAuth } from '@/hooks/useAuth';
@@ -183,6 +183,12 @@ const Navbar = () => {
               )}
             </div>
 
+            {/* Wishlist icon */}
+            <Link to="/wishlist" className="hidden md:flex items-center gap-2 hover:text-primary transition-colors py-2 group">
+              <Heart className="w-6 h-6 text-gray-700 group-hover:text-primary" />
+              <span className="font-bold text-sm hidden lg:block text-gray-700 group-hover:text-primary">Wishlist</span>
+            </Link>
+
             {/* Cart icon */}
             <Link to="/cart" className="flex items-center gap-2 hover:text-primary transition-colors py-2 group">
               <div className="relative">
@@ -260,6 +266,10 @@ const Navbar = () => {
             <Link to="/profile" className="flex items-center gap-3 py-2.5 text-sm font-body font-bold text-gray-700 hover:text-[#f68b1e] transition-colors"
               onClick={() => setMobileMenuOpen(false)}>
               <User className="w-5 h-5" /> Hi, {user?.username}
+            </Link>
+            <Link to="/wishlist" className="flex items-center gap-3 py-2.5 text-sm font-body font-bold text-gray-700 hover:text-[#f68b1e] transition-colors"
+              onClick={() => setMobileMenuOpen(false)}>
+              <Heart className="w-5 h-5" /> My Wishlist
             </Link>
             <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
               className="flex items-center gap-3 py-2.5 text-sm font-body font-bold text-[#f68b1e] w-full hover:opacity-80 transition-opacity">

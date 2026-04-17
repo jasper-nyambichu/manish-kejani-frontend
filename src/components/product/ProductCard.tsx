@@ -1,9 +1,10 @@
 // src/components/product/ProductCard.tsx
-import { Star, MessageCircle } from 'lucide-react';
+import { Star, MessageCircle, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Product } from '@/types/product.types';
 import { useCartStore } from '@/store/cartStore';
+import { useWishlistStore } from '@/store/wishlistStore';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -31,6 +32,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const addItem           = useCartStore(s => s.addItem);
   const isInCart          = useCartStore(s => s.isInCart);
 
+  const toggleWishlist  = useWishlistStore(s => s.toggleItem);
+  const isInWishlist    = useWishlistStore(s => s.isInWishlist);
+
   const productId    = product.id ?? product._id;
   const imageUrl     = product.images?.[0]?.url ?? (product as any).image ?? '';
   const categoryName = typeof product.category === 'object' ? product.category.name : product.category;
@@ -38,6 +42,24 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const discount     = product.discountPercent ?? (product as any).discount;
   const isNewArrival = product.isNewArrival ?? (product as any).isNew;
   const inCart       = isInCart(productId);
+  const inWishlist   = isInWishlist(productId);
+
+  const handleToggleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toggleWishlist({
+      id:            productId,
+      name:          product.name,
+      price:         product.price,
+      originalPrice: product.originalPrice,
+      image:         imageUrl,
+      category:      categoryName as string,
+      rating:        product.rating,
+      reviews:       product.reviews,
+      stock:         status,
+      discount:      discount,
+    });
+    toast.success(inWishlist ? 'Removed from wishlist' : 'Added to wishlist');
+  };
 
   const waNumber   = import.meta.env.VITE_WHATSAPP_NUMBER ?? '254719769263';
   const whatsappUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(
@@ -78,6 +100,15 @@ const ProductCard = ({ product }: ProductCardProps) => {
           NEW
         </div>
       )}
+
+      {/* Wishlist heart — always visible top-right */}
+      <button
+        onClick={handleToggleWishlist}
+        className="absolute top-2 right-2 z-20 w-7 h-7 rounded-full bg-white/90 shadow flex items-center justify-center hover:scale-110 transition-transform"
+        title={inWishlist ? 'Remove from wishlist' : 'Save to wishlist'}
+      >
+        <Heart className={`w-3.5 h-3.5 transition-colors ${inWishlist ? 'fill-primary text-primary' : 'text-gray-400'}`} />
+      </button>
 
       {/* Image */}
       <Link to={`/product/${productId}`}>

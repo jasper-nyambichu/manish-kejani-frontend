@@ -36,13 +36,21 @@ const CategoryPage = () => {
     <div className="min-h-screen bg-background font-body">
       <Navbar />
       <main>
-        <div className="container mx-auto px-4 py-3">
-          <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Link to="/" className="hover:text-primary transition-colors">Home</Link>
-            <ChevronRight className="w-3 h-3" />
-            <span className="text-foreground">{categoryName}</span>
-          </nav>
-        </div>
+        {/* Page header */}
+        <section className="relative bg-gradient-to-b from-secondary/60 to-background overflow-hidden">
+          <div className="absolute -top-16 -left-16 w-56 h-56 rounded-full bg-primary/5 pointer-events-none" />
+          <div className="relative container mx-auto px-4 pt-10 pb-8">
+            <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
+              <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+              <ChevronRight className="w-3 h-3" />
+              <span className="text-foreground">{categoryName}</span>
+            </nav>
+            <h1 className="font-display text-2xl md:text-3xl text-foreground">
+              {categoryName}
+            </h1>
+            <p className="text-xs text-muted-foreground mt-1">{pagination.total} products found</p>
+          </div>
+        </section>
 
         <div className="container mx-auto px-4 pb-8">
           <div className="flex gap-4">
@@ -90,11 +98,7 @@ const CategoryPage = () => {
 
             {/* Main content */}
             <div className="flex-1">
-              <div className="bg-card rounded-card border border-border p-4 mb-4 flex items-center justify-between flex-wrap gap-3">
-                <div>
-                  <h1 className="font-display text-xl text-foreground">{categoryName}</h1>
-                  <p className="text-xs text-muted-foreground mt-0.5">{pagination.total} products found</p>
-                </div>
+              <div className="bg-card rounded-card border border-border p-4 mb-4 flex items-center justify-end flex-wrap gap-3">
                 <div className="flex items-center gap-3">
                   <button onClick={() => setShowFilters(!showFilters)}
                     className="lg:hidden flex items-center gap-1.5 text-sm text-foreground border border-border rounded-button px-3 py-1.5 hover:bg-secondary transition-colors">

@@ -7,6 +7,7 @@ import BestSellers from "@/components/sections/BestSellers";
 import NewArrivals from "@/components/sections/NewArrivals";
 import PromoBanner from "@/components/sections/PromoBanner";
 import StatCounters from "@/components/sections/StatCounters";
+import RecentlyViewed from "@/components/sections/RecentlyViewed";
 import { useEffect } from "react";
 
 const Index = () => {
@@ -26,6 +27,7 @@ const Index = () => {
         <PromoBanner />
         <BestSellers />
         <NewArrivals />
+        <RecentlyViewed />
         <StatCounters />
       </main>
       <Footer />

@@ -45,7 +45,7 @@ const BestSellers = () => {
             <TrendingUp className="w-5 h-5 text-surface-foreground" />
             <span className="font-body font-bold text-surface-foreground text-sm md:text-base">Best Sellers</span>
           </div>
-          <a href="#" className="text-xs font-body font-semibold text-primary hover:underline">See All →</a>
+          <a href="/best-sellers" className="text-xs font-body font-semibold text-primary hover:underline">See All →</a>
         </div>
         <div className="bg-card rounded-b-card border border-t-0 border-border p-3 md:p-0 relative">
 

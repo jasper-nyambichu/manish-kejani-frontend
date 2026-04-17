@@ -16,7 +16,23 @@ import LoginPage from "./pages/public/LoginPage";
 import VerifyEmailPage from "./pages/public/VerifyEmailPage";
 import GoogleAuthSuccess from "./pages/public/GoogleAuthSuccess";
 import ProfilePage from "./pages/public/ProfilePage";
+import WishlistPage from "./pages/public/WishlistPage";
 import NotFound from "./pages/public/NotFound";
+
+// Static / policy pages
+import HelpCenter from "./pages/public/HelpCenter";
+import ContactUs from "./pages/public/ContactUs";
+import HowToBuy from "./pages/public/HowToBuy";
+import ShippingDelivery from "./pages/public/ShippingDelivery";
+import ReturnPolicy from "./pages/public/ReturnPolicy";
+import DisputeResolution from "./pages/public/DisputeResolution";
+import AboutUs from "./pages/public/AboutUs";
+import TermsConditions from "./pages/public/TermsConditions";
+import PrivacyPolicy from "./pages/public/PrivacyPolicy";
+import CookiePolicy from "./pages/public/CookiePolicy";
+import FlashSalesPage from "./pages/public/FlashSalesPage";
+import BestSellersPage from "./pages/public/BestSellersPage";
+import NewArrivalsPage from "./pages/public/NewArrivalsPage";
 
 // Admin pages
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -54,6 +70,22 @@ const App = () => (
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
+
+          {/* Static / policy pages */}
+          <Route path="/help" element={<HelpCenter />} />
+          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/how-to-buy" element={<HowToBuy />} />
+          <Route path="/shipping" element={<ShippingDelivery />} />
+          <Route path="/return-policy" element={<ReturnPolicy />} />
+          <Route path="/dispute" element={<DisputeResolution />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/terms" element={<TermsConditions />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/cookie" element={<CookiePolicy />} />
+          <Route path="/flash-sales" element={<FlashSalesPage />} />
+          <Route path="/best-sellers" element={<BestSellersPage />} />
+          <Route path="/new-arrivals" element={<NewArrivalsPage />} />
 
           {/* Admin routes */}
           <Route path="/admin/login" element={<AdminLogin />} />

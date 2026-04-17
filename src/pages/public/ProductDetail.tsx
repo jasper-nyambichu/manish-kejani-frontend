@@ -1,16 +1,22 @@
 // src/pages/public/ProductDetail.tsx
 import { useParams, Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useProduct, useRelatedProducts } from '@/hooks/useProduct';
 import { useCartStore } from '@/store/cartStore';
+import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/product/ProductCard';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ImageLightbox from '@/components/common/ImageLightbox';
-import { Star, ShoppingCart, Share2, ChevronRight, Truck, ShieldCheck, RotateCcw, MessageCircle, Minus, Plus, Check, ZoomIn } from 'lucide-react';
+import { Star, ShoppingCart, Share2, ChevronRight, Truck, ShieldCheck, RotateCcw, MessageCircle, Minus, Plus, Check, ZoomIn, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import ReviewForm from '@/components/product/ReviewForm';
+import ReviewList from '@/components/product/ReviewList';
+import TrustBadges from '@/components/common/TrustBadges';
+import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
+import { useWishlistStore } from '@/store/wishlistStore';
 
 const stockLabels: Record<string, string> = {
   in_stock:     '✓ In Stock',
@@ -28,16 +34,39 @@ const stockColors: Record<string, string> = {
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const addItem  = useCartStore(s => s.addItem);
-  const isInCart = useCartStore(s => s.isInCart);
+  const addItem     = useCartStore(s => s.addItem);
+  const isInCart     = useCartStore(s => s.isInCart);
+  const toggleWishlist = useWishlistStore(s => s.toggleItem);
+  const isInWishlist   = useWishlistStore(s => s.isInWishlist);
   const { data: product, isLoading, isError } = useProduct(id!);
   const { data: relatedProducts = [] } = useRelatedProducts(id!, 6);
+  const { isAuthenticated } = useAuth();
   const [selectedImage, setSelectedImage] = useState(0);
   const [lightboxOpen,   setLightboxOpen]  = useState(false);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity,       setQuantity]      = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'specs' | 'reviews'>('description');
+  const { track } = useRecentlyViewed();
 
-if (isLoading) return (
+  // Must be before any early returns — Rules of Hooks
+  useEffect(() => {
+    if (!product) return;
+    const pid      = product.id ?? product._id;
+    const imgUrl   = product.images?.[0]?.url ?? '';
+    const catName  = typeof product.category === 'object' ? product.category.name : product.category as string;
+    const disc     = product.discountPercent ?? 0;
+    track({
+      id:       pid,
+      name:     product.name,
+      price:    product.price,
+      image:    imgUrl,
+      category: catName,
+      rating:   product.rating,
+      discount: disc || undefined,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product?.id ?? product?._id]);
+
+  if (isLoading) return (
     <div className="min-h-screen bg-background font-body">
       <Navbar />
       <LoadingSpinner className="py-32" />
@@ -64,6 +93,23 @@ if (isLoading) return (
   const productId    = product.id ?? product._id;
   const imageUrl     = product.images?.[0]?.url ?? '';
   const inCart       = isInCart(productId);
+  const inWishlist   = isInWishlist(productId);
+
+  const handleToggleWishlist = () => {
+    toggleWishlist({
+      id:            productId,
+      name:          product.name,
+      price:         product.price,
+      originalPrice: product.originalPrice,
+      image:         imageUrl,
+      category:      typeof product.category === 'object' ? product.category.name : product.category as string,
+      rating:        product.rating,
+      reviews:       product.reviews,
+      stock:         status,
+      discount:      discount,
+    });
+    toast.success(inWishlist ? 'Removed from wishlist' : 'Saved to wishlist');
+  };
 
   const handleAddToCart = () => {
     addItem({
@@ -123,6 +169,16 @@ if (isLoading) return (
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm font-body">No image</div>
                   )}
+                  {/* Wishlist heart on image */}
+                  <button
+                    onClick={e => { e.stopPropagation(); handleToggleWishlist(); }}
+                    className={`absolute top-3 right-3 z-20 w-9 h-9 rounded-full shadow-md flex items-center justify-center transition-all hover:scale-110 ${
+                      inWishlist ? 'bg-primary text-white' : 'bg-white/90 text-gray-400 hover:text-primary'
+                    }`}
+                    title={inWishlist ? 'Remove from wishlist' : 'Save to wishlist'}
+                  >
+                    <Heart className={`w-4 h-4 ${inWishlist ? 'fill-white' : ''}`} />
+                  </button>
                 </div>
                 {images.length > 1 && (
                   <div className="flex gap-2 flex-wrap">
@@ -192,9 +248,7 @@ if (isLoading) return (
                 {/* Actions */}
                 <div className="flex gap-2 mb-4">
                   <button
-                    onClick={() => {
-                      window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-                    }}
+                    onClick={() => window.open(whatsappUrl, '_blank', 'noopener,noreferrer')}
                     className="flex-1 flex items-center justify-center gap-2 h-12 bg-primary text-primary-foreground rounded-button font-semibold text-sm hover:opacity-90 transition-opacity">
                     <MessageCircle className="w-5 h-5" />
                     Order via WhatsApp
@@ -202,15 +256,29 @@ if (isLoading) return (
                   <button
                     onClick={handleAddToCart}
                     className={`w-12 h-12 border rounded-button flex items-center justify-center transition-colors ${
-                      inCart
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border text-muted-foreground hover:text-primary hover:border-primary'
+                      inCart ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:text-primary hover:border-primary'
                     }`}
                     title={inCart ? 'Added to cart' : 'Add to cart'}
                   >
                     {inCart ? <Check className="w-5 h-5" /> : <ShoppingCart className="w-5 h-5" />}
                   </button>
-                  <button className="w-12 h-12 border border-border rounded-button flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors">
+                  <button
+                    onClick={handleToggleWishlist}
+                    className={`w-12 h-12 border rounded-button flex items-center justify-center transition-colors ${
+                      inWishlist ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:text-primary hover:border-primary'
+                    }`}
+                    title={inWishlist ? 'Remove from wishlist' : 'Save to wishlist'}
+                  >
+                    <Heart className={`w-5 h-5 ${inWishlist ? 'fill-primary' : ''}`} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard?.writeText(window.location.href);
+                      toast.success('Link copied!');
+                    }}
+                    className="w-12 h-12 border border-border rounded-button flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors"
+                    title="Share product"
+                  >
                     <Share2 className="w-5 h-5" />
                   </button>
                 </div>
@@ -257,14 +325,21 @@ if (isLoading) return (
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="container mx-auto px-4 pb-8">
+        {/* Trust badges */}
+        <div className="container mx-auto px-4 pb-4">
+          <TrustBadges />
+        </div>
+
+        {/* Tabs: Description & Specs */}
+        <div className="container mx-auto px-4 pb-6">
           <div className="bg-card rounded-card border border-border overflow-hidden">
             <div className="flex border-b border-border">
-              {(['description', 'specs', 'reviews'] as const).map((tab) => (
-                <button key={tab} onClick={() => setActiveTab(tab)}
-                  className={`flex-1 py-3 text-sm font-medium text-center capitalize transition-colors ${activeTab === tab ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'}`}>
-                  {tab === 'reviews' ? `Reviews (${product.reviews})` : tab}
+              {(['description', 'specs'] as const).map((tab) => (
+                <button key={tab} onClick={() => setActiveTab(tab as any)}
+                  className={`flex-1 py-3 text-sm font-medium text-center capitalize transition-colors ${
+                    activeTab === tab ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}>
+                  {tab}
                 </button>
               ))}
             </div>
@@ -299,22 +374,41 @@ if (isLoading) return (
                   ))}
                 </div>
               )}
-              {activeTab === 'reviews' && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="text-center">
-                      <p className="text-3xl font-bold text-foreground">{product.rating}</p>
-                      <div className="flex mt-1">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star key={i} className={`w-3 h-3 ${i < Math.floor(product.rating) ? 'text-warning fill-warning' : 'text-border'}`} />
-                        ))}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">{product.reviews} reviews</p>
-                    </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Reviews — always visible, never hidden behind a tab */}
+        <div className="container mx-auto px-4 pb-8">
+          <div className="bg-card rounded-card border border-border overflow-hidden">
+            <div className="px-4 md:px-6 py-4 border-b border-border flex items-center justify-between">
+              <h2 className="font-display text-lg text-foreground">
+                Customer Reviews
+                <span className="ml-2 text-sm font-body font-normal text-muted-foreground">({product.reviews})</span>
+              </h2>
+              {product.rating > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <div className="flex">
+                    {[1,2,3,4,5].map(i => (
+                      <Star key={i} className={`w-4 h-4 ${i <= Math.round(product.rating) ? 'text-warning fill-warning' : 'text-border'}`} />
+                    ))}
                   </div>
-                  <p className="text-sm text-muted-foreground italic">Customer reviews will appear here once orders are placed.</p>
+                  <span className="text-sm font-bold text-foreground">{product.rating.toFixed(1)}</span>
                 </div>
               )}
+            </div>
+            <div className="p-4 md:p-6 space-y-6">
+              {/* Write a review — shown first so user sees it immediately */}
+              <div className="bg-secondary/50 rounded-card p-4">
+                <h3 className="text-sm font-semibold text-foreground mb-4">Write a Review</h3>
+                <ReviewForm productId={productId} />
+              </div>
+              {/* Existing reviews below */}
+              <ReviewList
+                productId={productId}
+                totalReviews={product.reviews}
+                averageRating={product.rating}
+              />
             </div>
           </div>
         </div>
