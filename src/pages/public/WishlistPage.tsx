@@ -6,11 +6,13 @@ import { Heart, ChevronRight, Trash2, MessageCircle, ShoppingBag } from 'lucide-
 import { useWishlistStore } from '@/store/wishlistStore';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { useWhatsApp } from '@/hooks/useWhatsApp';
 
 const WishlistPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { items, removeItem, clearWishlist } = useWishlistStore();
+  const { number } = useWhatsApp();
 
   return (
     <div className="min-h-screen bg-background font-body">
@@ -99,8 +101,13 @@ const WishlistPage = () => {
                               navigate('/login');
                               return;
                             }
+                            const waNumber = number || import.meta.env.VITE_WHATSAPP_NUMBER;
+                            if (!waNumber) {
+                              toast.error('WhatsApp ordering is temporarily unavailable.');
+                              return;
+                            }
                             window.open(
-                              `https://wa.me/254719769263?text=${encodeURIComponent(`Hi, I'd like to order: ${item.name} (KSh ${item.price})`)}`,
+                              `https://wa.me/${waNumber}?text=${encodeURIComponent(`Hi, I'd like to order: ${item.name} (KSh ${item.price})`)}`,
                               '_blank',
                               'noopener,noreferrer'
                             );

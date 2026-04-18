@@ -5,7 +5,7 @@ import type { Product } from '@/types/product.types';
 
 const fetchWhatsAppNumber = async (): Promise<string> => {
   const { data } = await api.get('/api/v1/whatsapp/number');
-  return data.data.number;
+  return data.data?.number ?? '';
 };
 
 export const useWhatsApp = () => {

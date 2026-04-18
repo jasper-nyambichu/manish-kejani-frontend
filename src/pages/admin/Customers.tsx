@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Search, Mail, Phone, Calendar, UserCircle } from "lucide-react";
+import { useAdminCustomers } from "@/hooks/useAdminProducts";
 
 interface Customer {
   id: string;
@@ -10,17 +11,45 @@ interface Customer {
   ordersCount: number;
 }
 
-const sampleCustomers: Customer[] = [
-  { id: "1", name: "Jane Wanjiku", email: "jane@email.com", phone: "0712 345 678", joinedDate: "2025-05-10", ordersCount: 5 },
-  { id: "2", name: "David Otieno", email: "david@email.com", phone: "0723 456 789", joinedDate: "2025-05-15", ordersCount: 3 },
-  { id: "3", name: "Mary Njeri", email: "mary@email.com", phone: "0734 567 890", joinedDate: "2025-06-01", ordersCount: 1 },
-  { id: "4", name: "James Kamau", email: "james@email.com", phone: "0745 678 901", joinedDate: "2025-06-10", ordersCount: 8 },
-  { id: "5", name: "Sarah Achieng", email: "sarah@email.com", phone: "0756 789 012", joinedDate: "2025-06-12", ordersCount: 2 },
-];
+type ApiCustomer = Record<string, unknown>;
+
+const readString = (value: unknown, fallback = ""): string =>
+  typeof value === "string" ? value : fallback;
+
+const readNumber = (value: unknown, fallback = 0): number =>
+  typeof value === "number" ? value : fallback;
+
+const normalizeCustomer = (raw: ApiCustomer): Customer => {
+  const joinedRaw = readString(raw.joinedDate) || readString(raw.createdAt);
+  const joinedDate = joinedRaw ? new Date(joinedRaw).toISOString().slice(0, 10) : "-";
+  const idValue = readString(raw.id) || readString(raw._id) || readString(raw.email);
+
+  return {
+    id: idValue || crypto.randomUUID(),
+    name: readString(raw.name) || readString(raw.username) || "Unknown Customer",
+    email: readString(raw.email, "-"),
+    phone: readString(raw.phone) || readString(raw.phoneNumber) || "-",
+    joinedDate,
+    ordersCount:
+      readNumber(raw.ordersCount, Number.NaN) ||
+      readNumber(raw.orders, Number.NaN) ||
+      readNumber(raw.totalOrders, 0),
+  };
+};
 
 const Customers = () => {
   const [search, setSearch] = useState("");
-  const filtered = sampleCustomers.filter(
+  const { data, isLoading, isError } = useAdminCustomers();
+
+  const customers = useMemo(() => {
+    if (Array.isArray(data)) return data.map((item) => normalizeCustomer(item as ApiCustomer));
+    const payload = (data ?? {}) as { customers?: unknown[]; users?: unknown[] };
+    if (Array.isArray(payload.customers)) return payload.customers.map((item) => normalizeCustomer(item as ApiCustomer));
+    if (Array.isArray(payload.users)) return payload.users.map((item) => normalizeCustomer(item as ApiCustomer));
+    return [];
+  }, [data]);
+
+  const filtered = customers.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
       c.email.toLowerCase().includes(search.toLowerCase())
@@ -43,7 +72,20 @@ const Customers = () => {
         />
       </div>
 
+      {isLoading && (
+        <div className="bg-card rounded-card border border-border px-4 py-12 text-center font-body text-muted-foreground">
+          Loading customers...
+        </div>
+      )}
+
+      {isError && (
+        <div className="bg-card rounded-card border border-border px-4 py-12 text-center font-body text-destructive">
+          Failed to load customers. Please try again.
+        </div>
+      )}
+
       {/* Mobile cards + desktop table */}
+      {!isLoading && !isError && (
       <div className="bg-card rounded-card border border-border overflow-hidden">
         {/* Desktop table */}
         <div className="hidden md:block overflow-x-auto">
@@ -108,6 +150,7 @@ const Customers = () => {
           <div className="px-4 py-12 text-center font-body text-muted-foreground">No customers found</div>
         )}
       </div>
+      )}
     </div>
   );
 };

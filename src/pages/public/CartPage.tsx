@@ -4,9 +4,11 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { ShoppingCart, ChevronRight, Trash2, MessageCircle, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
+import { useWhatsApp } from '@/hooks/useWhatsApp';
 
 const CartPage = () => {
   const { items, removeItem, updateQty, clearCart, totalItems, totalPrice } = useCartStore();
+  const { number } = useWhatsApp();
 
   const total      = totalPrice();
   const itemsCount = totalItems();
@@ -15,7 +17,8 @@ const CartPage = () => {
     const text = items.map(i =>
       `• ${i.name} x${i.quantity} — KSh ${(i.price * i.quantity).toLocaleString()}`
     ).join('\n');
-    const waNumber = import.meta.env.VITE_WHATSAPP_NUMBER ?? '254719769263';
+    const waNumber = number || import.meta.env.VITE_WHATSAPP_NUMBER;
+    if (!waNumber) return;
     const message = `Hi Manish Kejani 👋\n\nI'd like to order the following:\n\n${text}\n\n*Total: KSh ${total.toLocaleString()}*\n\nPlease confirm availability and delivery. Thank you!`;
     window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
   };
