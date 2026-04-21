@@ -6,6 +6,7 @@ import logo from '@/assets/logo.png';
 import { useAuth } from '@/hooks/useAuth';
 import { useCategories } from '@/hooks/useCategories';
 import { useCartStore } from '@/store/cartStore';
+import { useWishlistStore } from '@/store/wishlistStore';
 import { toast } from 'sonner';
 import SearchSuggestions from '@/components/common/SearchSuggestions';
 import { useSearchHistory } from '@/hooks/useSearchHistory';
@@ -27,6 +28,7 @@ const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const { data: categories = [] }         = useCategories();
   const cartCount                         = useCartStore(s => s.totalItems());
+  const wishlistCount                     = useWishlistStore(s => s.items.length);
   const { save: saveHistory }             = useSearchHistory();
 
   const [scrollDirection, setScrollDirection] = useState<'up' | 'down'>('up');
@@ -184,8 +186,15 @@ const Navbar = () => {
             </div>
 
             {/* Wishlist icon */}
-            <Link to="/wishlist" className="hidden md:flex items-center gap-2 hover:text-primary transition-colors py-2 group">
-              <Heart className="w-6 h-6 text-gray-700 group-hover:text-primary" />
+            <Link to="/wishlist" className="flex items-center gap-2 hover:text-primary transition-colors py-2 group">
+              <div className="relative">
+                <Heart className="w-6 h-6 text-gray-700 group-hover:text-primary" />
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px] bg-[#f68b1e] text-white rounded-full text-[10px] flex items-center justify-center font-bold shadow-sm">
+                    {wishlistCount}
+                  </span>
+                )}
+              </div>
               <span className="font-bold text-sm hidden lg:block text-gray-700 group-hover:text-primary">Wishlist</span>
             </Link>
 

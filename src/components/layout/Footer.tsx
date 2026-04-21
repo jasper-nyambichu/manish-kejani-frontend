@@ -1,13 +1,10 @@
+//src/components/layout/Footer.tsx
 import { Link } from "react-router-dom";
 import { Mail, Facebook, Twitter, Instagram, Youtube, Apple, Play } from "lucide-react";
 import logo from "@/assets/logo.png";
-import { useCategories } from "@/hooks/useCategories";
-import type { Category } from "@/types/category.types";
+import { CATEGORY_LIST as categories } from "@/constants/categories";
 
 const Footer = () => {
-  const { data: categories = [], isLoading } = useCategories();
-  const topCategories = categories.slice(0, 6);
-
   return (
     <footer className="bg-surface text-surface-foreground font-body mt-8">
       {/* ── Tier 1: Top Bar (Newsletter & Apps) ── */}
@@ -108,17 +105,11 @@ const Footer = () => {
           <div>
             <h4 className="font-bold uppercase mb-3 text-[12px]">Top Categories</h4>
             <ul className="space-y-2 opacity-80">
-              {isLoading ? (
-                <li className="text-xs opacity-60">Loading categories…</li>
-              ) : topCategories.length === 0 ? (
-                <li className="text-xs opacity-60">Categories coming soon</li>
-              ) : (
-                topCategories.map((cat: Category) => (
-                  <li key={cat.id}>
-                    <Link to={`/category/${cat.slug}`} className="hover:underline">{cat.name}</Link>
-                  </li>
-                ))
-              )}
+              {categories.slice(0, 6).map((cat) => (
+                <li key={cat.id}>
+                  <Link to={`/category/${cat.slug}`} className="hover:underline">{cat.name}</Link>
+                </li>
+              ))}
             </ul>
           </div>
 

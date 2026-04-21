@@ -1,14 +1,18 @@
-// src/pages/public/CartPage.tsx
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { ShoppingCart, ChevronRight, Trash2, MessageCircle, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
 import { useWhatsApp } from '@/hooks/useWhatsApp';
+import ConfirmationModal from '@/components/ui/ConfirmationModal';
 
 const CartPage = () => {
   const { items, removeItem, updateQty, clearCart, totalItems, totalPrice } = useCartStore();
   const { number } = useWhatsApp();
+  
+  const [modalItemDelete, setModalItemDelete] = useState<string | null>(null);
+  const [modalClearCart, setModalClearCart] = useState(false);
 
   const total      = totalPrice();
   const itemsCount = totalItems();
@@ -57,7 +61,7 @@ const CartPage = () => {
                   <h1 className="font-display text-xl text-foreground">
                     My Cart <span className="text-muted-foreground text-base font-body">({itemsCount} items)</span>
                   </h1>
-                  <button onClick={clearCart}
+                  <button onClick={() => setModalClearCart(true)}
                     className="text-xs font-body text-destructive hover:underline flex items-center gap-1">
                     <Trash2 className="w-3 h-3" /> Clear cart
                   </button>
@@ -114,7 +118,7 @@ const CartPage = () => {
                           <span className="text-sm font-body font-bold text-foreground">
                             KSh {(item.price * item.quantity).toLocaleString()}
                           </span>
-                          <button onClick={() => removeItem(item.id)}
+                          <button onClick={() => setModalItemDelete(item.id)}
                             className="text-muted-foreground hover:text-destructive transition-colors">
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -169,6 +173,28 @@ const CartPage = () => {
         </div>
       </main>
       <Footer />
+      
+      <ConfirmationModal
+        isOpen={modalItemDelete !== null}
+        title="Are You Sure\nWant To Delete?"
+        message="This item will be removed from your cart. You can always add it back later if needed."
+        onConfirm={() => {
+          if (modalItemDelete) removeItem(modalItemDelete);
+          setModalItemDelete(null);
+        }}
+        onCancel={() => setModalItemDelete(null)}
+      />
+
+      <ConfirmationModal
+        isOpen={modalClearCart}
+        title="Clear Entire Cart?"
+        message="Are you sure you want to remove all items from your cart? This action cannot be undone."
+        onConfirm={() => {
+          clearCart();
+          setModalClearCart(false);
+        }}
+        onCancel={() => setModalClearCart(false)}
+      />
     </div>
   );
 };

@@ -1,18 +1,19 @@
-// src/pages/public/WishlistPage.tsx
-import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Heart, ChevronRight, Trash2, MessageCircle, ShoppingBag } from 'lucide-react';
 import { useWishlistStore } from '@/store/wishlistStore';
-import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { useWhatsApp } from '@/hooks/useWhatsApp';
+import ConfirmationModal from '@/components/ui/ConfirmationModal';
 
 const WishlistPage = () => {
-  const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
   const { items, removeItem, clearWishlist } = useWishlistStore();
   const { number } = useWhatsApp();
+  
+  const [modalItemDelete, setModalItemDelete] = useState<string | null>(null);
+  const [modalClearWishlist, setModalClearWishlist] = useState(false);
 
   return (
     <div className="min-h-screen bg-background font-body">
@@ -46,7 +47,7 @@ const WishlistPage = () => {
                 <h1 className="font-display text-xl text-foreground">
                   My Wishlist <span className="text-muted-foreground text-base font-body">({items.length} items)</span>
                 </h1>
-                <button onClick={clearWishlist}
+                <button onClick={() => setModalClearWishlist(true)}
                   className="text-xs font-body text-destructive hover:underline flex items-center gap-1">
                   <Trash2 className="w-3 h-3" /> Clear all
                 </button>
@@ -69,7 +70,7 @@ const WishlistPage = () => {
                           )}
                         </div>
                       </Link>
-                      <button onClick={() => removeItem(item.id)}
+                      <button onClick={() => setModalItemDelete(item.id)}
                         className="absolute top-2 right-2 w-8 h-8 bg-card/80 backdrop-blur-sm rounded-full flex items-center justify-center text-primary hover:bg-destructive/10 hover:text-destructive transition-colors"
                         title="Remove from wishlist">
                         <Heart className="w-4 h-4 fill-primary" />
@@ -96,11 +97,6 @@ const WishlistPage = () => {
                       <div className="flex gap-2">
                         <button
                           onClick={() => {
-                            if (!isAuthenticated) {
-                              toast.error('Please sign in to place an order');
-                              navigate('/login');
-                              return;
-                            }
                             const waNumber = number || import.meta.env.VITE_WHATSAPP_NUMBER;
                             if (!waNumber) {
                               toast.error('WhatsApp ordering is temporarily unavailable.');
@@ -114,7 +110,7 @@ const WishlistPage = () => {
                           }}
                           className="flex-1 flex items-center justify-center gap-1.5 h-9 bg-primary text-primary-foreground rounded-button font-body text-xs font-semibold hover:opacity-90 transition-opacity">
                           <MessageCircle className="w-3.5 h-3.5" />
-                          {isAuthenticated ? 'Order' : 'Sign in to Order'}
+                          Order
                         </button>
                         <Link to={`/product/${item.id}`}
                           className="flex items-center justify-center gap-1.5 h-9 px-3 border border-border text-foreground rounded-button font-body text-xs hover:bg-secondary transition-colors">
@@ -131,6 +127,28 @@ const WishlistPage = () => {
         </div>
       </main>
       <Footer />
+      
+      <ConfirmationModal
+        isOpen={modalItemDelete !== null}
+        title="Remove item from\nWishlist?"
+        message="This item will no longer be saved in your wishlist."
+        onConfirm={() => {
+          if (modalItemDelete) removeItem(modalItemDelete);
+          setModalItemDelete(null);
+        }}
+        onCancel={() => setModalItemDelete(null)}
+      />
+
+      <ConfirmationModal
+        isOpen={modalClearWishlist}
+        title="Clear Entire Wishlist?"
+        message="Are you sure you want to remove all saved items? This action cannot be undone."
+        onConfirm={() => {
+          clearWishlist();
+          setModalClearWishlist(false);
+        }}
+        onCancel={() => setModalClearWishlist(false)}
+      />
     </div>
   );
 };

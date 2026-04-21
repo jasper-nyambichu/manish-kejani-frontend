@@ -1,9 +1,8 @@
 // src/pages/public/ProductDetail.tsx
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useProduct, useRelatedProducts } from '@/hooks/useProduct';
 import { useCartStore } from '@/store/cartStore';
-import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/product/ProductCard';
@@ -17,6 +16,8 @@ import ReviewList from '@/components/product/ReviewList';
 import TrustBadges from '@/components/common/TrustBadges';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import { useWishlistStore } from '@/store/wishlistStore';
+import AnimatedSuccessModal from '@/components/ui/AnimatedSuccessModal';
+import { showBrandedToast } from '@/components/ui/BrandedToast';
 
 const stockLabels: Record<string, string> = {
   in_stock:     '✓ In Stock',
@@ -34,8 +35,6 @@ const stockColors: Record<string, string> = {
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
   const addItem     = useCartStore(s => s.addItem);
   const isInCart     = useCartStore(s => s.isInCart);
   const toggleWishlist = useWishlistStore(s => s.toggleItem);
@@ -46,6 +45,7 @@ const ProductDetail = () => {
   const [lightboxOpen,   setLightboxOpen]  = useState(false);
   const [quantity,       setQuantity]      = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'specs' | 'reviews'>('description');
+  const [showReviewSuccess, setShowReviewSuccess] = useState(false);
   const { track } = useRecentlyViewed();
 
   // Must be before any early returns — Rules of Hooks
@@ -109,7 +109,7 @@ const ProductDetail = () => {
       stock:         status,
       discount:      discount,
     });
-    toast.success(inWishlist ? 'Removed from wishlist' : 'Saved to wishlist');
+    showBrandedToast(inWishlist ? 'Removed from wishlist' : 'Saved to wishlist', 'success');
   };
 
   const handleAddToCart = () => {
@@ -125,7 +125,7 @@ const ProductDetail = () => {
       stock:         status,
       discount:      discount,
     });
-    toast.success(`${product.name} added to cart`);
+    showBrandedToast(`${product.name} added to cart`, 'cart');
   };
 
   const waNumber   = import.meta.env.VITE_WHATSAPP_NUMBER ?? '254719769263';
@@ -250,11 +250,6 @@ const ProductDetail = () => {
                 <div className="flex gap-2 mb-4">
                   <button
                     onClick={() => {
-                      if (!isAuthenticated) {
-                        toast.error('Please sign in to place an order');
-                        navigate('/login');
-                        return;
-                      }
                       window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
                     }}
                     className="flex-1 flex items-center justify-center gap-2 h-12 bg-primary text-primary-foreground rounded-button font-semibold text-sm hover:opacity-90 transition-opacity">
@@ -343,7 +338,7 @@ const ProductDetail = () => {
           <div className="bg-card rounded-card border border-border overflow-hidden">
             <div className="flex border-b border-border">
               {(['description', 'specs'] as const).map((tab) => (
-                <button key={tab} onClick={() => setActiveTab(tab as any)}
+                <button key={tab} onClick={() => setActiveTab(tab)}
                   className={`flex-1 py-3 text-sm font-medium text-center capitalize transition-colors ${
                     activeTab === tab ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'
                   }`}>
@@ -409,7 +404,13 @@ const ProductDetail = () => {
               {/* Write a review — shown first so user sees it immediately */}
               <div className="bg-secondary/50 rounded-card p-4">
                 <h3 className="text-sm font-semibold text-foreground mb-4">Write a Review</h3>
-                <ReviewForm productId={productId} />
+                <ReviewForm 
+                  productId={productId} 
+                  onSuccess={() => {
+                    setShowReviewSuccess(true);
+                    setTimeout(() => setShowReviewSuccess(false), 2500);
+                  }}
+                />
               </div>
               {/* Existing reviews below */}
               <ReviewList
@@ -426,7 +427,7 @@ const ProductDetail = () => {
           <div className="container mx-auto px-4 pb-8">
             <h2 className="font-display text-xl text-foreground mb-4">You May Also Like</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-              {relatedProducts.map((p: any) => (
+              {relatedProducts.map((p: React.ComponentProps<typeof ProductCard>['product']) => (
                 <ProductCard key={p._id ?? p.id} product={p} />
               ))}
             </div>
@@ -449,11 +450,6 @@ const ProductDetail = () => {
       <div className="fixed bottom-0 left-0 right-0 md:hidden bg-card border-t border-border p-3 z-40">
         <button
           onClick={() => {
-            if (!isAuthenticated) {
-              toast.error('Please sign in to place an order');
-              navigate('/login');
-              return;
-            }
             window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
           }}
           className="flex items-center justify-center gap-2 w-full h-12 bg-primary text-primary-foreground rounded-button font-semibold text-sm">
@@ -463,6 +459,12 @@ const ProductDetail = () => {
       </div>
 
       <Footer />
+      
+      <AnimatedSuccessModal 
+        isOpen={showReviewSuccess}
+        title="Thank You!"
+        message="Your review has been successfully submitted."
+      />
     </div>
   );
 };

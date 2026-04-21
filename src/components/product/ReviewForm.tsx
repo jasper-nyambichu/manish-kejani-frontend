@@ -8,9 +8,10 @@ import { Link } from 'react-router-dom';
 
 interface Props {
   productId: string;
+  onSuccess?: () => void;
 }
 
-const ReviewForm = ({ productId }: Props) => {
+const ReviewForm = ({ productId, onSuccess }: Props) => {
   const { isAuthenticated } = useAuth();
   const [rating,  setRating]  = useState(0);
   const [hover,   setHover]   = useState(0);
@@ -35,12 +36,17 @@ const ReviewForm = ({ productId }: Props) => {
     if (!comment.trim()) { toast.error('Please write a comment'); return; }
     mutate({ rating, comment: comment.trim() }, {
       onSuccess: () => {
-        toast.success('Review submitted!');
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          toast.success('Review submitted!');
+        }
         setRating(0);
         setComment('');
       },
-      onError: (err: any) => {
-        toast.error(err?.response?.data?.message ?? 'Failed to submit review');
+      onError: (err: unknown) => {
+        const error = err as { response?: { data?: { message?: string } } };
+        toast.error(error?.response?.data?.message ?? 'Failed to submit review');
       },
     });
   };

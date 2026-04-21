@@ -1,6 +1,7 @@
 import ProductCard from '@/components/product/ProductCard';
 import { Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { useFlashDeals } from '@/hooks/useProduct';
 
 const CountdownTimer = () => {
@@ -73,7 +74,7 @@ const FlashDeals = () => {
             <span className="font-body font-bold text-primary-foreground text-sm md:text-base">Flash Sales | Live Now</span>
           </div>
           <CountdownTimer />
-          <a href="/flash-sales" className="text-xs font-body font-semibold text-primary-foreground hover:underline hidden md:block">See All →</a>
+          <Link to="/flash-sales" className="text-xs font-body font-semibold text-primary-foreground hover:underline">See All →</Link>
         </div>
         <div className="bg-card rounded-b-card border border-t-0 border-border p-3 md:p-0 relative">
 

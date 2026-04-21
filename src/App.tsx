@@ -6,6 +6,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthProvider";
 import { useAdminAuth } from "@/store/authStore";
+import FloatingWhatsApp from "@/components/ui/FloatingWhatsApp";
 
 // Public pages
 import Index from "./pages/public/Index";
@@ -112,6 +113,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <FloatingWhatsApp />
       </BrowserRouter>
     </TooltipProvider>
     </AuthProvider>

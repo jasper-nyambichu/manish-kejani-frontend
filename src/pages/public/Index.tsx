@@ -8,6 +8,7 @@ import NewArrivals from "@/components/sections/NewArrivals";
 import PromoBanner from "@/components/sections/PromoBanner";
 import StatCounters from "@/components/sections/StatCounters";
 import RecentlyViewed from "@/components/sections/RecentlyViewed";
+import WelcomeModal from "@/components/ui/WelcomeModal";
 import { useEffect } from "react";
 
 const Index = () => {
@@ -31,6 +32,7 @@ const Index = () => {
         <StatCounters />
       </main>
       <Footer />
+      <WelcomeModal />
     </div>
   );
 };

@@ -1,11 +1,10 @@
 // src/components/product/ProductCard.tsx
 import { Star, MessageCircle, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import type { Product } from '@/types/product.types';
 import { useCartStore } from '@/store/cartStore';
 import { useWishlistStore } from '@/store/wishlistStore';
-import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
 interface ProductCardProps {
@@ -27,8 +26,6 @@ const stockLabels: Record<string, string> = {
 };
 
 const ProductCard = ({ product }: ProductCardProps) => {
-  const navigate          = useNavigate();
-  const { isAuthenticated } = useAuth();
   const addItem           = useCartStore(s => s.addItem);
   const isInCart          = useCartStore(s => s.isInCart);
 
@@ -58,7 +55,27 @@ const ProductCard = ({ product }: ProductCardProps) => {
       stock:         status,
       discount:      discount,
     });
-    toast.success(inWishlist ? 'Removed from wishlist' : 'Added to wishlist');
+    
+    if (inWishlist) {
+      toast.success('Removed from wishlist');
+    } else {
+      toast.custom(() => (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.8, y: -20 }}
+          className="bg-white dark:bg-card shadow-2xl rounded-2xl p-5 flex flex-col items-center justify-center gap-3 border border-gray-100 min-w-[250px]"
+        >
+          <div className="w-12 h-12 rounded-full bg-[#f68b1e]/10 flex items-center justify-center">
+             <Heart className="w-6 h-6 fill-[#f68b1e] text-[#f68b1e]" />
+          </div>
+          <div className="text-center">
+             <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-1 text-sm">Added to Wishlist!</h3>
+             <p className="text-xs text-gray-500 line-clamp-1">{product.name}</p>
+          </div>
+        </motion.div>
+      ), { duration: 3000, position: 'top-center' });
+    }
   };
 
   const waNumber   = import.meta.env.VITE_WHATSAPP_NUMBER ?? '254719769263';
@@ -173,11 +190,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </span>
           <button
             onClick={() => {
-              if (!isAuthenticated) {
-                toast.error('Please sign in to place an order');
-                navigate('/login');
-                return;
-              }
               window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
             }}
             className="flex items-center gap-1 text-xs font-body font-medium text-primary hover:scale-105 hover:underline transition-all duration-300 relative z-[21]"
