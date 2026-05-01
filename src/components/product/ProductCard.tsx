@@ -78,10 +78,26 @@ const ProductCard = ({ product }: ProductCardProps) => {
     }
   };
 
-  const waNumber   = import.meta.env.VITE_WHATSAPP_NUMBER ?? '254719769263';
-  const whatsappUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(
-    `Hi, I'd like to order: ${product.name} (KSh ${product.price})`
-  )}`;
+const waNumber = import.meta.env.VITE_WHATSAPP_NUMBER ?? '254719769263';
+const productUrl = `${window.location.origin}/product/${productId}`;
+
+const whatsappUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(
+`🛍️ *NEW ORDER — Manish Households*
+──────────────────────
+*Product:* ${product.name}
+*Price:* KSh ${product.price.toLocaleString()}
+*Category:* ${categoryName as string}${product.originalPrice ? `
+*Original Price:* KSh ${product.originalPrice.toLocaleString()}` : ''}${discount > 0 ? `
+*Discount:* ${discount}% OFF 🔥` : ''}
+*Stock:* ${stockLabels[status] ?? status}
+──────────────────────
+🔗 *View Product Page:*
+${productUrl}
+🖼️ *Product Image:*
+${imageUrl}
+──────────────────────
+Hello! I would like to order the above product. Kindly confirm availability and delivery details. Thank you! 😊`
+)}`;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
