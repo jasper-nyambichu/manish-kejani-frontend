@@ -30,7 +30,7 @@ export const useWhatsApp = () => {
       const productUrl = window.location.origin + "/product/" + productId;
 
       const lines: string[] = [
-        "??? *NEW ORDER � Manish Households*",
+        "📦 *NEW ORDER - Manish Households*",
         "----------------------",
         "*Product:* " + product.name,
         "*Price:* KSh " + product.price.toLocaleString(),
@@ -43,7 +43,7 @@ export const useWhatsApp = () => {
       }
 
       if (discount > 0) {
-        lines.push("*Discount:* " + discount + "% OFF ??");
+        lines.push("*Discount:* " + discount + "% OFF 🔥");
       }
 
       lines.push("----------------------");
@@ -51,16 +51,16 @@ export const useWhatsApp = () => {
       lines.push("*Name:* " + username);
       lines.push("*Phone:* " + phone);
       lines.push("----------------------");
-      lines.push("?? *View Product Page:*");
+      lines.push("🔗 *View Product Page:*");
       lines.push(productUrl);
 
       if (imageUrl) {
-        lines.push("??? *Product Image:*");
+        lines.push("🖼️ *Product Image:*");
         lines.push(imageUrl);
       }
 
       lines.push("----------------------");
-      lines.push("Hello! I would like to order the above product. Kindly confirm availability and delivery details. Thank you! ??");
+      lines.push("Hello! I would like to order the above product. Kindly confirm availability and delivery details. Thank you! 🙏");
 
       return "https://wa.me/" + n + "?text=" + encodeURIComponent(lines.join("\n"));
     },
