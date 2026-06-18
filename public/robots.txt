@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+Disallow: /profile
+Disallow: /wishlist
+
+Sitemap: https://www.manishhouseholds.co.ke/sitemap.xml
