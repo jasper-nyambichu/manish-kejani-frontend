@@ -12,11 +12,20 @@ const SITE_URL = "https://www.manishhouseholds.co.ke"; // must match your canoni
 const API_URL = process.env.VITE_API_URL || "http://localhost:5000";
 
 // Static, public, indexable pages only.
-// Do NOT include /login, /register, /profile, /wishlist, /admin/* — these are
-// private/user-specific and should never be in a sitemap.
+// Do NOT include /login, /register, /profile, /wishlist, /cart, /admin/* — these are
+// private/user-specific/transactional and should never be in a sitemap.
 const staticRoutes = [
   { path: "/", priority: 1.0, changefreq: "daily" },
   { path: "/search", priority: 0.5, changefreq: "weekly" },
+
+  // Commercial collection pages — these change often as stock/deals rotate
+  { path: "/flash-sales", priority: 0.8, changefreq: "daily" },
+  { path: "/best-sellers", priority: 0.8, changefreq: "daily" },
+  { path: "/new-arrivals", priority: 0.8, changefreq: "daily" },
+
+  // Trust / info pages — low priority but still worth indexing
+  { path: "/about", priority: 0.5, changefreq: "monthly" },
+  { path: "/contact", priority: 0.5, changefreq: "monthly" },
 ];
 
 async function fetchJSON(url) {
