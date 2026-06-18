@@ -1,5 +1,6 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { Helmet } from "react-helmet-async";
 import HeroBanner from "@/components/sections/HeroBanner";
 import CategoryStrip from "@/components/sections/CategoryStrip";
 import FlashDeals from "@/components/sections/FlashDeals";
@@ -20,6 +21,20 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background font-body">
+      <Helmet>
+        <meta
+          name="description"
+          content="Shop quality kitchenware, bedding, home décor, cookware and more online in Kenya. Manish Households offers fast delivery and easy WhatsApp ordering."
+        />
+        <link rel="canonical" href="https://www.manishhouseholds.co.ke/" />
+        <meta property="og:title" content="Manish Households - Quality Home & Kitchen Products in Kenya" />
+        <meta
+          property="og:description"
+          content="Shop quality kitchenware, bedding, home décor, cookware and more online in Kenya."
+        />
+        <meta property="og:url" content="https://www.manishhouseholds.co.ke/" />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <Navbar />
       <main>
         <HeroBanner />

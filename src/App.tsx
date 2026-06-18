@@ -1,6 +1,7 @@
 // src/App.tsx
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import ScrollToTop from "./components/common/ScrollToTop";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -57,6 +58,10 @@ const AdminGuard = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <Helmet
+      titleTemplate="%s | Manish Households"
+      defaultTitle="Manish Households - Quality Home & Kitchen Products in Kenya"
+    />
     <AuthProvider>
     <TooltipProvider>
       <Sonner richColors position="top-right" />

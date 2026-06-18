@@ -1,6 +1,7 @@
 // src/pages/public/CategoryPage.tsx
 import { useParams, Link } from 'react-router-dom';
 import { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useProductsByCategory } from '@/hooks/useProduct';
 import { useCategories } from '@/hooks/useCategories';
 import Navbar from '@/components/layout/Navbar';
@@ -32,8 +33,19 @@ const CategoryPage = () => {
     ?? slug?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
     ?? 'Products';
 
+  const canonicalUrl = `https://www.manishhouseholds.co.ke/category/${slug}`;
+  const metaDescription = `Shop ${categoryName} online in Kenya — ${pagination.total} products available at Manish Households with fast delivery and easy WhatsApp ordering.`;
+
   return (
     <div className="min-h-screen bg-background font-body">
+      <Helmet>
+        <title>{categoryName}</title>
+        <meta name="description" content={metaDescription} />
+        <link rel="canonical" href={canonicalUrl} />
+        <meta property="og:title" content={categoryName} />
+        <meta property="og:description" content={metaDescription} />
+        <meta property="og:url" content={canonicalUrl} />
+      </Helmet>
       <Navbar />
       <main>
         {/* Page header */}

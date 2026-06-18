@@ -1,6 +1,7 @@
 // src/pages/public/ProductDetail.tsx
 import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useProduct, useRelatedProducts } from '@/hooks/useProduct';
 import { useCartStore } from '@/store/cartStore';
 import Navbar from '@/components/layout/Navbar';
@@ -133,8 +134,58 @@ const ProductDetail = () => {
     `Hi, I'd like to order:\n\n*${product.name}*\nQuantity: ${quantity}\nPrice: KSh ${(product.price * quantity).toLocaleString()}\n\nPlease confirm availability.`
   )}`;
 
+  const canonicalUrl = `https://www.manishhouseholds.co.ke/product/${productId}`;
+  const metaDescription = (
+    product.description ||
+    `Buy ${product.name} online in Kenya at Manish Households. KSh ${product.price.toLocaleString()}, fast delivery and easy WhatsApp ordering.`
+  ).slice(0, 160);
+
+  const productSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: metaDescription,
+    ...(imageUrl ? { image: [imageUrl] } : {}),
+    ...(product.sku ? { sku: product.sku } : {}),
+    brand: { '@type': 'Brand', name: 'Manish Households' },
+    ...(product.reviews > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: product.rating,
+            reviewCount: product.reviews,
+          },
+        }
+      : {}),
+    offers: {
+      '@type': 'Offer',
+      url: canonicalUrl,
+      priceCurrency: 'KES',
+      price: product.price,
+      availability:
+        status === 'in_stock' || status === 'low_stock'
+          ? 'https://schema.org/InStock'
+          : status === 'coming_soon'
+          ? 'https://schema.org/PreOrder'
+          : 'https://schema.org/OutOfStock',
+    },
+  };
+
   return (
     <div className="min-h-screen bg-background font-body">
+      <Helmet>
+        <title>{product.name}</title>
+        <meta name="description" content={metaDescription} />
+        <link rel="canonical" href={canonicalUrl} />
+        <meta property="og:type" content="product" />
+        <meta property="og:title" content={product.name} />
+        <meta property="og:description" content={metaDescription} />
+        <meta property="og:url" content={canonicalUrl} />
+        {imageUrl && <meta property="og:image" content={imageUrl} />}
+        <meta property="product:price:amount" content={String(product.price)} />
+        <meta property="product:price:currency" content="KES" />
+        <script type="application/ld+json">{JSON.stringify(productSchema)}</script>
+      </Helmet>
       <Navbar />
       <main>
         {/* Breadcrumbs */}
