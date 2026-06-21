@@ -10,10 +10,12 @@ import PromoBanner from "@/components/sections/PromoBanner";
 import StatCounters from "@/components/sections/StatCounters";
 import RecentlyViewed from "@/components/sections/RecentlyViewed";
 import WelcomeModal from "@/components/ui/WelcomeModal";
+import SocialProofToast from "@/components/ui/SocialProofToast";
+import TopPromoBanner from "@/components/ui/Toppromobanner";
 import { useEffect } from "react";
 
 const Index = () => {
-  // Wake up the Render backend immediately on page load
+  // Wake up the Back4App backend immediately on page load
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL ?? 'http://localhost:5000'}/health`)
       .catch(() => {}); // silent — just waking it up
@@ -35,6 +37,7 @@ const Index = () => {
         <meta property="og:url" content="https://www.manishhouseholds.co.ke/" />
         <meta property="og:type" content="website" />
       </Helmet>
+      <TopPromoBanner />
       <Navbar />
       <main>
         <HeroBanner />
@@ -48,6 +51,7 @@ const Index = () => {
       </main>
       <Footer />
       <WelcomeModal />
+      <SocialProofToast />
     </div>
   );
 };

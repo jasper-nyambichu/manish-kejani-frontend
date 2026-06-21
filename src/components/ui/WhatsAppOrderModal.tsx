@@ -222,7 +222,7 @@ const WhatsAppOrderModal = ({
                       </div>
 
                       <div>
-                        <label className="text-xs font-medium text-foreground mb-1 block">Delivery Location in Kisii</label>
+                        <label className="text-xs font-medium text-foreground mb-1 block">Delivery Location</label>
                         <div className="relative">
                           <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                           <input type="text" value={location} onChange={e => { setLocation(e.target.value); setErrors(v => ({ ...v, location: '' })); }}

@@ -1,40 +1,17 @@
+// src/components/sections/FlashDeals.tsx
 import ProductCard from '@/components/product/ProductCard';
+import FlashSaleCountdown from '@/components/ui/FlashSaleCountdown';
 import { Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useFlashDeals } from '@/hooks/useProduct';
-
-const CountdownTimer = () => {
-  const [time, setTime] = useState({ hours: 9, minutes: 29, seconds: 59 });
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTime((prev) => {
-        let { hours, minutes, seconds } = prev;
-        seconds--;
-        if (seconds < 0) { seconds = 59; minutes--; }
-        if (minutes < 0) { minutes = 59; hours--; }
-        if (hours < 0)   { hours = 23; minutes = 59; seconds = 59; }
-        return { hours, minutes, seconds };
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const pad = (n: number) => String(n).padStart(2, '0');
-
-  return (
-    <span className="font-body font-bold text-primary-foreground text-xs md:text-sm">
-      Time Left: {pad(time.hours)}h : {pad(time.minutes)}m : {pad(time.seconds)}s
-    </span>
-  );
-};
+import { motion } from 'framer-motion';
 
 const FlashDeals = () => {
   const { data, isLoading } = useFlashDeals(18);
   const products = data?.products ?? [];
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollLeft,  setCanScrollLeft]  = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
   const checkScroll = useCallback(() => {
@@ -61,24 +38,56 @@ const FlashDeals = () => {
     const el = scrollRef.current;
     const cardWidth = el.querySelector(':scope > div')?.clientWidth ?? 200;
     const visibleCards = Math.floor(el.clientWidth / cardWidth);
-    const scrollAmount = cardWidth * visibleCards;
-    el.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+    el.scrollBy({ left: direction === 'left' ? -(cardWidth * visibleCards) : (cardWidth * visibleCards), behavior: 'smooth' });
   };
 
   return (
-    <section className="py-4">
+    <motion.section
+      initial={{ opacity: 0, y: 32 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
+      className="py-4"
+    >
       <div className="container mx-auto px-4">
-        <div className="bg-primary rounded-t-card px-4 py-3 flex items-center justify-between">
+
+        {/* ── Section header ── */}
+        <div className="bg-primary rounded-t-card px-4 py-3 flex items-center justify-between gap-2 flex-wrap">
+
+          {/* Left: icon + title + animated LIVE dot */}
           <div className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-primary-foreground fill-primary-foreground" />
-            <span className="font-body font-bold text-primary-foreground text-sm md:text-base">Flash Sales | Live Now</span>
+            <motion.div
+              animate={{ rotate: [0, -10, 10, -10, 0] }}
+              transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
+            >
+              <Zap className="w-5 h-5 text-primary-foreground fill-primary-foreground" />
+            </motion.div>
+            <span className="font-body font-bold text-primary-foreground text-sm md:text-base">
+              Flash Sales
+            </span>
+            {/* Animated LIVE badge */}
+            <div className="flex items-center gap-1 bg-destructive/80 rounded-full px-2 py-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+              <span className="text-[10px] font-bold text-white tracking-wider">LIVE</span>
+            </div>
           </div>
-          <CountdownTimer />
-          <Link to="/flash-sales" className="text-xs font-body font-semibold text-primary-foreground hover:underline">See All →</Link>
+
+          {/* Centre: real countdown tied to end of today */}
+          <FlashSaleCountdown label="Ends in" />
+
+          {/* Right: see all link */}
+          <Link
+            to="/flash-sales"
+            className="text-xs font-body font-semibold text-primary-foreground hover:underline flex-shrink-0"
+          >
+            See All →
+          </Link>
         </div>
+
+        {/* ── Products area ── */}
         <div className="bg-card rounded-b-card border border-t-0 border-border p-3 md:p-0 relative">
 
-          {/* Left arrow – desktop only, appears after scrolling right */}
+          {/* Left arrow */}
           {canScrollLeft && (
             <button
               onClick={() => scroll('left')}
@@ -89,7 +98,7 @@ const FlashDeals = () => {
             </button>
           )}
 
-          {/* Right arrow – desktop only, appears when more content */}
+          {/* Right arrow */}
           {canScrollRight && (
             <button
               onClick={() => scroll('right')}
@@ -102,13 +111,11 @@ const FlashDeals = () => {
 
           {isLoading ? (
             <>
-              {/* Mobile: 2-col grid skeleton */}
               <div className="grid grid-cols-2 gap-2 md:hidden">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} className="h-52 bg-secondary rounded-card animate-pulse" />
                 ))}
               </div>
-              {/* Desktop: horizontal skeleton */}
               <div className="hidden md:flex overflow-hidden">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="min-w-[180px] h-72 bg-secondary animate-pulse border-r border-border last:border-r-0 flex-shrink-0" />
@@ -119,7 +126,7 @@ const FlashDeals = () => {
             <p className="text-center font-body text-muted-foreground py-8">No flash deals at the moment</p>
           ) : (
             <>
-              {/* Mobile: 2-column grid (like Jumia mobile) */}
+              {/* Mobile: 2-column grid */}
               <div className="grid grid-cols-2 gap-2 md:hidden">
                 {products.slice(0, 6).map((product) => (
                   <div key={product.id ?? (product as any)._id}>
@@ -128,7 +135,7 @@ const FlashDeals = () => {
                 ))}
               </div>
 
-              {/* Desktop: horizontal scroll with arrows (like Jumia desktop) */}
+              {/* Desktop: horizontal scroll */}
               <div
                 ref={scrollRef}
                 className="hidden md:flex overflow-x-auto scrollbar-hide scroll-smooth"
@@ -145,8 +152,9 @@ const FlashDeals = () => {
             </>
           )}
         </div>
+
       </div>
-    </section>
+    </motion.section>
   );
 };
 

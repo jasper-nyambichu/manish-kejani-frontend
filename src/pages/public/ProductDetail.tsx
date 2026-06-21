@@ -10,7 +10,7 @@ import ProductCard from '@/components/product/ProductCard';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ImageLightbox from '@/components/common/ImageLightbox';
 import WhatsAppOrderModal from '@/components/ui/WhatsAppOrderModal';
-import { Star, ShoppingCart, Share2, ChevronRight, Truck, ShieldCheck, RotateCcw, MessageCircle, Minus, Plus, Check, ZoomIn, Heart } from 'lucide-react';
+import { Star, ShoppingCart, Share2, ChevronRight, Truck, ShieldCheck, RotateCcw, MessageCircle, Minus, Plus, Check, ZoomIn, Heart, Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import ReviewForm from '@/components/product/ReviewForm';
@@ -49,9 +49,25 @@ const ProductDetail = () => {
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'description' | 'specs' | 'reviews'>('description');
   const [showReviewSuccess, setShowReviewSuccess] = useState(false);
+
+  // Simulated viewer count — stable per product (seeded from productId characters)
+  // Fluctuates slightly every 20s to feel live without being distracting
+  const [viewerCount, setViewerCount] = useState<number>(0);
   const { track } = useRecentlyViewed();
 
-  // Must be before any early returns — Rules of Hooks
+  // Initialise viewer count from productId seed so each product has a consistent base
+  useEffect(() => {
+    if (!id) return;
+    const seed = id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    const base = 6 + (seed % 19); // 6–24 base viewers
+    setViewerCount(base);
+    // Subtle fluctuation every 20s ±1 to feel organic
+    const t = setInterval(() => {
+      setViewerCount(v => Math.max(3, v + (Math.random() > 0.5 ? 1 : -1)));
+    }, 20000);
+    return () => clearInterval(t);
+  }, [id]);
+
   useEffect(() => {
     if (!product) return;
     const pid      = product.id ?? product._id;
@@ -274,10 +290,29 @@ const ProductDetail = () => {
                 </div>
 
                 {/* Stock */}
-                <div className="mb-4">
+                <div className="mb-2">
                   <span className={`text-sm font-medium ${stockColors[status] ?? 'text-foreground'}`}>
                     {stockLabels[status] ?? status}
                   </span>
+                </div>
+
+                {/* Viewer count + low stock urgency */}
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                  {viewerCount > 0 && (
+                    <div className="flex items-center gap-1.5 bg-secondary rounded-full px-3 py-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                      <Eye className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">
+                        <span className="font-semibold text-foreground">{viewerCount}</span> people viewing this
+                      </span>
+                    </div>
+                  )}
+                  {status === 'low_stock' && (
+                    <div className="flex items-center gap-1.5 bg-warning/10 rounded-full px-3 py-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse" />
+                      <span className="text-xs text-warning font-semibold">Almost gone — order now!</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Quantity */}
