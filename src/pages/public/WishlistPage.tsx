@@ -4,16 +4,45 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Heart, ChevronRight, Trash2, MessageCircle, ShoppingBag } from 'lucide-react';
 import { useWishlistStore } from '@/store/wishlistStore';
-import { toast } from 'sonner';
 import { useWhatsApp } from '@/hooks/useWhatsApp';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
+import WhatsAppOrderModal from '@/components/ui/WhatsAppOrderModal';
+import type { Product } from '@/types/product.types';
+
+// Convert a WishlistItem to the Product shape WhatsAppOrderModal expects.
+// WishlistItem stores image as a flat string; Product uses images[] array.
+const wishlistItemToProduct = (item: ReturnType<typeof useWishlistStore.getState>['items'][0]): Product => ({
+  _id:            item.id,
+  id:             item.id,
+  name:           item.name,
+  price:          item.price,
+  originalPrice:  item.originalPrice,
+  images:         item.image ? [{ url: item.image, publicId: '' }] : [],
+  discountPercent: item.discount,
+  category:       item.category,
+  status:         (item.stock ?? 'in_stock') as Product['status'],
+  featured:       false,
+  isFlashDeal:    false,
+  isNewArrival:   false,
+  rating:         item.rating,
+  reviews:        item.reviews,
+});
 
 const WishlistPage = () => {
   const { items, removeItem, clearWishlist } = useWishlistStore();
   const { number } = useWhatsApp();
-  
-  const [modalItemDelete, setModalItemDelete] = useState<string | null>(null);
+
+  const [modalItemDelete,    setModalItemDelete]    = useState<string | null>(null);
   const [modalClearWishlist, setModalClearWishlist] = useState(false);
+  // Which wishlist item is currently being ordered via modal
+  const [orderingItem, setOrderingItem] = useState<string | null>(null);
+
+  const waNumber = number || import.meta.env.VITE_WHATSAPP_NUMBER || '';
+
+  // The product being ordered (converted from WishlistItem shape to Product shape)
+  const orderingProduct = orderingItem
+    ? wishlistItemToProduct(items.find(i => i.id === orderingItem)!)
+    : null;
 
   return (
     <div className="min-h-screen bg-background font-body">
@@ -95,19 +124,9 @@ const WishlistPage = () => {
                         )}
                       </div>
                       <div className="flex gap-2">
+                        {/* Now opens the full modal with customer details + opt-in */}
                         <button
-                          onClick={() => {
-                            const waNumber = number || import.meta.env.VITE_WHATSAPP_NUMBER;
-                            if (!waNumber) {
-                              toast.error('WhatsApp ordering is temporarily unavailable.');
-                              return;
-                            }
-                            window.open(
-                              `https://wa.me/${waNumber}?text=${encodeURIComponent(`Hi, I'd like to order: ${item.name} (KSh ${item.price})`)}`,
-                              '_blank',
-                              'noopener,noreferrer'
-                            );
-                          }}
+                          onClick={() => setOrderingItem(item.id)}
                           className="flex-1 flex items-center justify-center gap-1.5 h-9 bg-primary text-primary-foreground rounded-button font-body text-xs font-semibold hover:opacity-90 transition-opacity">
                           <MessageCircle className="w-3.5 h-3.5" />
                           Order
@@ -127,7 +146,18 @@ const WishlistPage = () => {
         </div>
       </main>
       <Footer />
-      
+
+      {/* WhatsApp order modal for individual wishlist items */}
+      {orderingProduct && (
+        <WhatsAppOrderModal
+          isOpen={orderingItem !== null}
+          onClose={() => setOrderingItem(null)}
+          product={orderingProduct}
+          quantity={1}
+          waNumber={waNumber}
+        />
+      )}
+
       <ConfirmationModal
         isOpen={modalItemDelete !== null}
         title="Remove item from\nWishlist?"

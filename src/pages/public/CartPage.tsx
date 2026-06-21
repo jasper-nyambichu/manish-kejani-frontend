@@ -6,26 +6,19 @@ import { ShoppingCart, ChevronRight, Trash2, MessageCircle, Plus, Minus, Shoppin
 import { useCartStore } from '@/store/cartStore';
 import { useWhatsApp } from '@/hooks/useWhatsApp';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
+import CartOrderModal from '@/components/ui/CartOrderModal';
 
 const CartPage = () => {
   const { items, removeItem, updateQty, clearCart, totalItems, totalPrice } = useCartStore();
   const { number } = useWhatsApp();
-  
+
   const [modalItemDelete, setModalItemDelete] = useState<string | null>(null);
-  const [modalClearCart, setModalClearCart] = useState(false);
+  const [modalClearCart,  setModalClearCart]  = useState(false);
+  const [orderModalOpen,  setOrderModalOpen]  = useState(false);
 
   const total      = totalPrice();
   const itemsCount = totalItems();
-
-  const handleOrderAll = () => {
-    const text = items.map(i =>
-      `• ${i.name} x${i.quantity} — KSh ${(i.price * i.quantity).toLocaleString()}`
-    ).join('\n');
-    const waNumber = number || import.meta.env.VITE_WHATSAPP_NUMBER;
-    if (!waNumber) return;
-    const message = `Hi Manish Kejani 👋\n\nI'd like to order the following:\n\n${text}\n\n*Total: KSh ${total.toLocaleString()}*\n\nPlease confirm availability and delivery. Thank you!`;
-    window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
-  };
+  const waNumber   = number || import.meta.env.VITE_WHATSAPP_NUMBER || '';
 
   return (
     <div className="min-h-screen bg-background font-body">
@@ -154,7 +147,9 @@ const CartPage = () => {
                     <span className="text-primary text-lg">KSh {total.toLocaleString()}</span>
                   </div>
 
-                  <button onClick={handleOrderAll}
+                  {/* Opens the rich multi-product modal */}
+                  <button
+                    onClick={() => setOrderModalOpen(true)}
                     className="w-full h-12 bg-primary text-primary-foreground rounded-button font-body font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
                     <MessageCircle className="w-5 h-5" />
                     Order via WhatsApp
@@ -173,7 +168,16 @@ const CartPage = () => {
         </div>
       </main>
       <Footer />
-      
+
+      {/* Rich multi-product WhatsApp order modal */}
+      <CartOrderModal
+        isOpen={orderModalOpen}
+        onClose={() => setOrderModalOpen(false)}
+        items={items}
+        total={total}
+        waNumber={waNumber}
+      />
+
       <ConfirmationModal
         isOpen={modalItemDelete !== null}
         title="Are You Sure\nWant To Delete?"
