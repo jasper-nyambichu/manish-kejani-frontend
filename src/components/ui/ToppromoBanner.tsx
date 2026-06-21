@@ -1,8 +1,3 @@
-// src/components/ui/TopPromoBanner.tsx
-// Thin dismissible banner above the navbar — reinforces free delivery USP
-// and creates a sense of time-sensitive benefit. Persists dismissal in sessionStorage
-// so it doesn't reappear mid-session after the user closes it.
-
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Truck, Zap } from 'lucide-react';
@@ -30,12 +25,10 @@ const TopPromoBanner = () => {
   const [msgIndex, setMsgIndex] = useState(0);
 
   useEffect(() => {
-    // Don't show if user dismissed it this session
     const dismissed = sessionStorage.getItem('promo_banner_dismissed');
     if (!dismissed) setVisible(true);
   }, []);
 
-  // Rotate messages every 4s
   useEffect(() => {
     if (!visible) return;
     const t = setInterval(() => {
