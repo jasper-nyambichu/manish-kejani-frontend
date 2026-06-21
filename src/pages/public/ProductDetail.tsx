@@ -9,6 +9,7 @@ import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/product/ProductCard';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ImageLightbox from '@/components/common/ImageLightbox';
+import WhatsAppOrderModal from '@/components/ui/WhatsAppOrderModal';
 import { Star, ShoppingCart, Share2, ChevronRight, Truck, ShieldCheck, RotateCcw, MessageCircle, Minus, Plus, Check, ZoomIn, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -45,6 +46,7 @@ const ProductDetail = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [lightboxOpen,   setLightboxOpen]  = useState(false);
   const [quantity,       setQuantity]      = useState(1);
+  const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'description' | 'specs' | 'reviews'>('description');
   const [showReviewSuccess, setShowReviewSuccess] = useState(false);
   const { track } = useRecentlyViewed();
@@ -129,10 +131,7 @@ const ProductDetail = () => {
     showBrandedToast(`${product.name} added to cart`, 'cart');
   };
 
-  const waNumber   = import.meta.env.VITE_WHATSAPP_NUMBER ?? '254719769263';
-  const whatsappUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(
-    `Hi, I'd like to order:\n\n*${product.name}*\nQuantity: ${quantity}\nPrice: KSh ${(product.price * quantity).toLocaleString()}\n\nPlease confirm availability.`
-  )}`;
+  const waNumber = import.meta.env.VITE_WHATSAPP_NUMBER ?? '254719769263';
 
   const canonicalUrl = `https://www.manishhouseholds.co.ke/product/${productId}`;
   const metaDescription = (
@@ -300,9 +299,7 @@ const ProductDetail = () => {
                 {/* Actions */}
                 <div className="flex gap-2 mb-4">
                   <button
-                    onClick={() => {
-                      window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-                    }}
+                    onClick={() => setOrderModalOpen(true)}
                     className="flex-1 flex items-center justify-center gap-2 h-12 bg-primary text-primary-foreground rounded-button font-semibold text-sm hover:opacity-90 transition-opacity">
                     <MessageCircle className="w-5 h-5" />
                     Order via WhatsApp
@@ -500,9 +497,7 @@ const ProductDetail = () => {
       {/* Sticky mobile WhatsApp bar */}
       <div className="fixed bottom-0 left-0 right-0 md:hidden bg-card border-t border-border p-3 z-40">
         <button
-          onClick={() => {
-            window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-          }}
+          onClick={() => setOrderModalOpen(true)}
           className="flex items-center justify-center gap-2 w-full h-12 bg-primary text-primary-foreground rounded-button font-semibold text-sm">
           <MessageCircle className="w-5 h-5" />
           Order via WhatsApp — KSh {(product.price * quantity).toLocaleString()}
@@ -510,7 +505,16 @@ const ProductDetail = () => {
       </div>
 
       <Footer />
-      
+
+      {/* WhatsApp Order Modal */}
+      <WhatsAppOrderModal
+        isOpen={orderModalOpen}
+        onClose={() => setOrderModalOpen(false)}
+        product={product}
+        quantity={quantity}
+        waNumber={waNumber}
+      />
+
       <AnimatedSuccessModal 
         isOpen={showReviewSuccess}
         title="Thank You!"

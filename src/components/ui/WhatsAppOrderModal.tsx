@@ -1,5 +1,5 @@
 // src/components/ui/WhatsAppOrderModal.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, MessageCircle, User, Phone, MapPin, Loader2, Bell, BellOff, CheckCircle2 } from 'lucide-react';
 import type { Product } from '@/types/product.types';
@@ -33,6 +33,20 @@ const WhatsAppOrderModal = ({
   const imageUrl  = product.images?.[0]?.url ?? '';
   const total     = product.price * quantity;
   const discount  = product.discountPercent ?? 0;
+
+  // Reset everything whenever the modal opens — this is the reliable fix.
+  // resetAndClose's setTimeout approach fails because onClose() unmounts the
+  // component before the timeout fires, so state never actually clears.
+  useEffect(() => {
+    if (isOpen) {
+      setStep('form');
+      setName('');
+      setPhone('');
+      setLocation('');
+      setSending(false);
+      setErrors({});
+    }
+  }, [isOpen]);
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -108,15 +122,8 @@ const WhatsAppOrderModal = ({
   };
 
   const resetAndClose = () => {
+    // Just close — useEffect on isOpen handles the state reset on next open
     onClose();
-    // Delay reset so animation completes before fields clear
-    setTimeout(() => {
-      setStep('form');
-      setName('');
-      setPhone('');
-      setLocation('');
-      setErrors({});
-    }, 300);
   };
 
   const handleClose = () => {
