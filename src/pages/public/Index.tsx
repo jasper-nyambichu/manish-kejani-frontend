@@ -11,7 +11,7 @@ import StatCounters from "@/components/sections/StatCounters";
 import RecentlyViewed from "@/components/sections/RecentlyViewed";
 import WelcomeModal from "@/components/ui/WelcomeModal";
 import SocialProofToast from "@/components/ui/SocialProofToast";
-import TopPromoBanner from "@/components/ui/Toppromobanner";
+import TopPromoBanner from "@/components/ui/TopPromoBanner";
 import { useEffect } from "react";
 
 const Index = () => {
