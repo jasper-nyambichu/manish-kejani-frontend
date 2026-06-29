@@ -22,7 +22,7 @@ interface AdminUser {
 export function useAdminAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     try {
-      return sessionStorage.getItem(AUTH_KEY) === 'true';
+      return localStorage.getItem(AUTH_KEY) === 'true';
     } catch {
       return false;
     }
@@ -30,7 +30,7 @@ export function useAdminAuth() {
 
   const [admin, setAdmin] = useState<AdminUser | null>(() => {
     try {
-      const raw = sessionStorage.getItem(ADMIN_USER_KEY);
+      const raw = localStorage.getItem(ADMIN_USER_KEY);
       return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
@@ -46,9 +46,9 @@ export function useAdminAuth() {
         refreshToken: data.data.refreshToken,
       };
 
-      sessionStorage.setItem(TOKENS_KEY,     JSON.stringify(tokens));
-      sessionStorage.setItem(AUTH_KEY,        'true');
-      sessionStorage.setItem(ADMIN_USER_KEY,  JSON.stringify(data.data.admin));
+      localStorage.setItem(TOKENS_KEY,     JSON.stringify(tokens));
+      localStorage.setItem(AUTH_KEY,        'true');
+      localStorage.setItem(ADMIN_USER_KEY,  JSON.stringify(data.data.admin));
 
       setAdmin(data.data.admin);
       setIsAuthenticated(true);
@@ -69,9 +69,9 @@ export function useAdminAuth() {
       // proceed regardless
     }
 
-    sessionStorage.removeItem(TOKENS_KEY);
-    sessionStorage.removeItem(AUTH_KEY);
-    sessionStorage.removeItem(ADMIN_USER_KEY);
+    localStorage.removeItem(TOKENS_KEY);
+    localStorage.removeItem(AUTH_KEY);
+    localStorage.removeItem(ADMIN_USER_KEY);
 
     setIsAuthenticated(false);
     setAdmin(null);

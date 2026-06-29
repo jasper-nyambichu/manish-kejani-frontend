@@ -7,6 +7,8 @@ const adminApi = axios.create({
   timeout:         30000,
 });
 
+// adminApi.ts
+
 adminApi.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (config.data instanceof FormData) {
     delete config.headers['Content-Type'];
@@ -15,13 +17,15 @@ adminApi.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   }
 
   try {
-    const raw = sessionStorage.getItem('mk_admin_tokens');
+    // ✅ CHANGED: sessionStorage → localStorage
+    const raw = localStorage.getItem('mk_admin_tokens');
     if (raw) {
       const { accessToken } = JSON.parse(raw);
       if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
     }
   } catch {
-    sessionStorage.removeItem('mk_admin_tokens');
+    // ✅ CHANGED: sessionStorage → localStorage
+    localStorage.removeItem('mk_admin_tokens');
   }
   return config;
 });
@@ -35,7 +39,8 @@ adminApi.interceptors.response.use(
       original._retry = true;
 
       try {
-        const raw = sessionStorage.getItem('mk_admin_tokens');
+        // ✅ CHANGED: sessionStorage → localStorage
+        const raw = localStorage.getItem('mk_admin_tokens');
         if (!raw) throw new Error('No tokens');
 
         const { refreshToken } = JSON.parse(raw);
@@ -50,12 +55,14 @@ adminApi.interceptors.response.use(
           accessToken:  data.data.accessToken,
           refreshToken: data.data.refreshToken,
         };
-        sessionStorage.setItem('mk_admin_tokens', JSON.stringify(tokens));
+        // ✅ CHANGED: sessionStorage → localStorage
+        localStorage.setItem('mk_admin_tokens', JSON.stringify(tokens));
         if (original.headers) original.headers['Authorization'] = `Bearer ${tokens.accessToken}`;
         return adminApi(original);
       } catch {
-        sessionStorage.removeItem('mk_admin_tokens');
-        sessionStorage.removeItem('mk_admin_auth');
+        // ✅ CHANGED: sessionStorage → localStorage
+        localStorage.removeItem('mk_admin_tokens');
+        localStorage.removeItem('mk_admin_auth');
         window.location.href = '/admin/login';
         return Promise.reject(error);
       }
